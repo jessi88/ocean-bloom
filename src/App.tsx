@@ -1555,7 +1555,7 @@ function BloomSection({ data }: { data: HemisphereWeeklyRow[] }) {
             Weekly chlorophyll-a snapshots turn daily Copernicus Marine data
             into a slow seasonal rhythm. This wide view is the cinematic
             opening: across the Northern Hemisphere, surface life gathers as
-            winter gives way to spring.
+            winter gives way to spring. 
           </p>
         </div>
       </div>
