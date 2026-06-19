@@ -475,6 +475,87 @@ function App() {
   )
 }
 
+function SectionIntro({
+  eyebrow,
+  scope,
+  title,
+  titleAccent,
+  lead,
+  body,
+  secondaryBody,
+  rightAside,
+  compact = false,
+  className = "mb-14",
+}: {
+  eyebrow: string
+  scope?: string
+  title: React.ReactNode
+  titleAccent?: React.ReactNode
+  lead?: React.ReactNode
+  body: React.ReactNode
+  secondaryBody?: React.ReactNode
+  rightAside?: React.ReactNode
+  compact?: boolean
+  className?: string
+}) {
+  return (
+    <div
+      className={`grid items-end gap-12 lg:grid-cols-[0.55fr_0.45fr] ${className}`}
+    >
+      <div>
+        <div className="mb-5">
+          <p className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
+            {eyebrow}
+          </p>
+
+          {scope ? (
+            <p className="mt-3 text-xs font-bold tracking-[0.14em] text-[#5d7c7c] uppercase">
+              {scope}
+            </p>
+          ) : null}
+        </div>
+
+        <h2
+          className={
+            compact
+              ? "font-serif text-[clamp(2.2rem,3.7vw,3.8rem)] leading-[0.94] tracking-[-0.045em] text-[#123238]"
+              : "text-[clamp(2.7rem,5.6vw,5.6rem)] leading-[0.92] tracking-[-0.06em] text-[#123238]"
+          }
+        >
+          {title}
+          {titleAccent ? (
+            <span className="block text-[#2bb673]">{titleAccent}</span>
+          ) : null}
+        </h2>
+
+        {lead ? (
+          <p
+            className={
+              compact
+                ? "mt-5 max-w-xl font-serif text-[clamp(1.05rem,1.25vw,1.3rem)] leading-[1.24] tracking-[-0.015em] text-[#123238]"
+                : "mt-7 max-w-2xl font-serif text-[clamp(1.25rem,1.7vw,1.65rem)] leading-[1.18] tracking-[-0.02em] text-[#123238]"
+            }
+          >
+            {lead}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="max-w-xl lg:justify-self-end">
+        <p className="text-[15px] leading-8 text-[#45696a]">{body}</p>
+
+        {secondaryBody ? (
+          <p className="mt-5 text-[14px] leading-7 text-[#5d7c7c]">
+            {secondaryBody}
+          </p>
+        ) : null}
+
+        {rightAside ? <div className="mt-8">{rightAside}</div> : null}
+      </div>
+    </div>
+  )
+}
+
 function OceanBackground() {
   return (
     <>
@@ -488,28 +569,41 @@ function OceanBackground() {
 function SiteHeader() {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-[#123238]/10 bg-[#f8fbf5]/75 backdrop-blur-xl">
-      <nav className="mx-auto flex h-16 w-[min(1180px,calc(100%-40px))] items-center justify-between gap-6">
+      <div className="mx-auto flex h-14 w-[min(1440px,calc(100%-40px))] items-center justify-between">
         <a
           href="#top"
-          className="flex items-center gap-3 text-xs tracking-[0.14em] text-[#45696a] uppercase"
+          className="flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-[#45696a] uppercase"
         >
           <img
             src={starClusterImg}
             alt=""
             aria-hidden="true"
-            className="h-6 w-6 object-contain"
+            className="-ml-2 h-5 w-5 opacity-45"
           />
-          Every Second Breath
+          <span>Every Second Breath</span>
         </a>
 
-        <div className="hidden items-center gap-5 text-sm text-[#45696a] md:flex">
-          <a href="#bloom">Bloom</a>
-          <a href="#evidence">North Atlantic</a>
-          <a href="#inside">Inside</a>
-          <a href="#exhale">Exhale</a>
-          <a href="#meaning">Meaning</a>
-        </div>
-      </nav>
+        <nav
+          aria-label="Main navigation"
+          className="flex items-center gap-6 text-sm text-[#345c5d]"
+        >
+          <a href="#bloom" className="transition hover:text-[#2bb673]">
+            Bloom
+          </a>
+          <a href="#evidence" className="transition hover:text-[#2bb673]">
+            North Atlantic
+          </a>
+          <a href="#inside" className="transition hover:text-[#2bb673]">
+            Inside
+          </a>
+          <a href="#exhale" className="transition hover:text-[#2bb673]">
+            Exhale
+          </a>
+          <a href="#meaning" className="transition hover:text-[#2bb673]">
+            Meaning
+          </a>
+        </nav>
+      </div>
     </header>
   )
 }
@@ -545,13 +639,9 @@ function HeroSection() {
             invisible as individuals, planetary in consequence.
           </p>
 
-          <a
-            href="#source"
-            className="mt-8 inline-flex items-center gap-3 text-sm text-[#2f6767]"
-          >
-            <span className="h-8 w-px animate-drop bg-gradient-to-b from-[#2bb673] to-transparent" />
-            Enter the bloom
-          </a>
+          <p className="mt-10 text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
+            Scroll to follow the breath
+          </p>
         </div>
       </div>
     </section>
@@ -564,31 +654,25 @@ function InsideBreathSection({ data }: { data: RegionalRow[] }) {
       id="inside"
       className="mx-auto w-[min(1440px,calc(100%-40px))] py-32"
     >
-      <div className="mb-12 grid grid-cols-[0.9fr_0.55fr] items-end gap-16 max-lg:grid-cols-1">
-        <div>
-          <div className="mb-5 text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
-            Act III · Inside the breath
-          </div>
-
-          <h2 className="text-[clamp(2.8rem,6vw,6.6rem)] leading-[0.92] tracking-[-0.06em] text-[#123238]">
-            Inside the breath,
-            <span className="block text-[#2bb673]">a system moves.</span>
-          </h2>
-        </div>
-
-        <div>
-          <p className="text-[15px] leading-7 text-[#45696a]">
+      <SectionIntro
+        eyebrow="Act III · Inside the breath"
+        scope="North Atlantic focus · daily surface data · March–June 2024"
+        title="Inside the breath,"
+        titleAccent="a system moves."
+        body={
+          <>
             The green signal is only the surface trace. Inside it are
             chlorophyll-bearing cells using light, carbon, and nutrients to grow
             and divide.
-          </p>
-
-          <p className="mt-4 text-[14px] leading-7 text-[#5d7c7c]">
+          </>
+        }
+        secondaryBody={
+          <>
             Click a microscopic layer to reveal the data behind the breath:
             pigment, biomass, production, nutrients, and oxygen.
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <MicroBloomExplorer data={data} />
 
@@ -633,7 +717,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
     stats.find((item) => item.key === selectedVariable.key) ?? stats[0]
 
   return (
-    <div className="relative grid grid-cols-[0.72fr_0.98fr] items-start gap-10 max-xl:grid-cols-1">
+    <div className="relative ml-10 grid grid-cols-[0.72fr_0.98fr] items-start gap-14 max-xl:grid-cols-1">
       <div className="relative min-h-[560px] pt-6 max-xl:min-h-[500px]">
         <div className="relative z-20 mx-auto max-w-[460px] text-center">
           <p className="text-xs font-bold tracking-[0.18em] text-[rgba(43,182,115,0.8)] uppercase">
@@ -652,7 +736,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
         </div>
       </div>
 
-      <div className="relative rounded-[34px] p-8">
+      <div className="relative min-h-[560px] px-8 pt-6 pb-8 max-xl:min-h-0">
         <div className="mb-6">
           <p className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
             Bloom layer
@@ -671,7 +755,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
           {selectedVariable.role}
         </p>
 
-        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-y border-[#123238]/10 py-4 text-sm text-[#45696a]">
+        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 border-t border-[#123238]/10 pt-4 text-sm text-[#45696a]">
           <span>
             <span className="font-bold tracking-[0.12em] text-[#2bb673] uppercase">
               Mean
@@ -694,7 +778,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
           </span>
         </div>
 
-        <div className="mt-7 space-y-5">
+        <div className="mt-8 min-h-[190px]">
           <MicroEditorialNote
             title="What it means"
             text={selectedVariable.whatItMeans}
@@ -711,26 +795,33 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
           />
         </div>
 
-        <div className="mt-8 rounded-[26px] bg-[#f4f8f3]/80 p-5">
-          <p className="text-xs font-bold tracking-[0.16em] text-[#2bb673] uppercase">
+        <div className="mt-8 grid gap-4 border-t border-[#123238]/10 pt-5 sm:grid-cols-[150px_1fr]">
+          <p className="m-0 text-xs leading-7 font-bold tracking-[0.16em] text-[#2bb673] uppercase">
             Breath metaphor
           </p>
-          <p className="mt-3 text-sm leading-7 text-[#45696a]">
+
+          <p className="m-0 text-sm leading-7 text-[#45696a]">
             {selectedVariable.metaphor}
           </p>
         </div>
 
-        <div className="mt-8">
-          <MiniSparkline
-            data={data}
-            variableKey={selectedVariable.key}
-            color="#2bb673"
-          />
-
-          <p className="mt-3 max-w-[520px] text-[11px] leading-5 text-[#7b9695]">
-            Each trace uses its own scale to reveal timing and shape, not
-            absolute magnitude.
+        <div className="mt-5 grid gap-4 sm:grid-cols-[150px_1fr]">
+          <p className="m-0 text-xs leading-7 font-bold tracking-[0.16em] text-[#2bb673] uppercase">
+            Trace
           </p>
+
+          <div>
+            <MiniSparkline
+              data={data}
+              variableKey={selectedVariable.key}
+              color="#2bb673"
+            />
+
+            <p className="mt-2 max-w-[520px] pl-[13px] text-[11px] leading-5 text-[#7b9695]">
+              Each trace uses its own scale to reveal timing and shape, not
+              absolute magnitude.
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -739,11 +830,12 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
 
 function MicroEditorialNote({ title, text }: { title: string; text: string }) {
   return (
-    <div className="grid grid-cols-[150px_1fr] gap-6 border-t border-[#123238]/10 pt-4 max-sm:grid-cols-1 max-sm:gap-2">
-      <p className="text-[11px] font-bold tracking-[0.16em] text-[#2bb673] uppercase">
+    <div className="grid min-h-[88px] items-start gap-4 border-t border-[#123238]/10 pt-4 sm:grid-cols-[150px_1fr]">
+      <p className="m-0 text-xs leading-7 font-bold tracking-[0.16em] text-[#2bb673] uppercase">
         {title}
       </p>
-      <p className="text-sm leading-7 text-[#45696a]">{text}</p>
+
+      <p className="m-0 text-sm leading-7 text-[#45696a]">{text}</p>
     </div>
   )
 }
@@ -769,17 +861,11 @@ function InsideMechanismStrip() {
   ]
 
   return (
-    <div className="mx-auto mt-16 w-[min(1180px,100%)]">
-      <div className="mb-8 flex items-end justify-between gap-8 max-lg:flex-col max-lg:items-start">
-        <div>
-          <p className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
-            Mechanism in one breath
-          </p>
-          <h3 className="mt-3 text-[clamp(1.5rem,2.4vw,2.6rem)] leading-[1] tracking-[-0.05em] text-[#123238]">
-            The mechanism,
-            <span className="block text-[#2bb673]">in one breath.</span>
-          </h3>
-        </div>
+    <div className="mx-auto mt-14 w-[min(1180px,100%)] pt-10">
+      <div className="mb-8">
+        <p className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
+          Mechanism in one breath
+        </p>
       </div>
 
       <div className="relative">
@@ -1089,7 +1175,7 @@ function MiniTrace({
     .curve(d3.curveBasis)
 
   return (
-    <div className="w-[210px] shrink-0 pt-0">
+    <div className="w-[220px] shrink-0 pt-0">
       <p className="text-[10px] font-bold tracking-[0.12em] whitespace-nowrap text-[#2bb673] uppercase">
         {label}
       </p>
@@ -1169,74 +1255,66 @@ function ExhaleSection({ data }: { data: RegionalRow[] }) {
       id="exhale"
       className="mx-auto w-[min(1440px,calc(100%-40px))] pt-32 pb-12"
     >
-      <div className="grid items-start gap-12 lg:grid-cols-[0.55fr_0.45fr]">
-        <div>
-          <div className="mb-5 text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
-            Act IV · Exhale
-          </div>
-
-          <h2 className="text-[clamp(3rem,7vw,7.4rem)] leading-[0.9] tracking-[-0.065em] text-[#123238]">
-            The breath leaves
-            <span className="block text-[#2bb673]">a living trace.</span>
-          </h2>
-        </div>
-
-        <div className="max-w-xl lg:justify-self-end">
-          <p className="text-[17px] leading-8 text-[#45696a]">
+      <SectionIntro
+        eyebrow="Act IV · Exhale"
+        scope="North Atlantic focus · daily surface data · 23 April–30 June 2024"
+        title="The breath leaves"
+        titleAccent="a living trace."
+        body={
+          <>
             The spring bloom does not simply disappear. As nutrients are drawn
             down and grazers catch up, the green signal softens — but the matter
             it created keeps moving.
-          </p>
-
-          <p className="mt-5 text-[15px] leading-8 text-[#5d7c7c]">
+          </>
+        }
+        secondaryBody={
+          <>
             Some of that living carbon enters food webs. Some remains dissolved
             or transformed within the ocean&apos;s carbon system. And at the
             surface, seawater CO₂ conditions connect the bloom back to the
             atmosphere above.
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      <div className="relative mt-8 overflow-visible px-2 py-4 sm:px-4 sm:py-6 lg:px-4 lg:py-8">
+      <div className="relative mt-8 overflow-visible py-4 sm:py-6 lg:py-8">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_24%_48%,rgba(43,182,115,0.12),transparent_30%),radial-gradient(circle_at_78%_55%,rgba(89,188,211,0.07),transparent_28%)]" />
 
-        <div className="relative z-10 mx-auto max-w-[1320px]">
-          <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,1.18fr)_500px] lg:gap-0">
-            <div className="relative lg:-mr-8 lg:-ml-36">
-              <img
-                src={exhalePathwayImg}
-                alt="Illustration showing bloom matter moving through food webs, ocean carbon pathways, and the atmosphere connection."
-                className="mx-auto w-full max-w-[1120px] object-contain"
-              />
-            </div>
+        <div className="relative z-10 grid items-center gap-12 lg:grid-cols-[0.55fr_0.45fr]">
+          <div className="relative lg:-mt-10 lg:-mr-16">
+            <img
+              src={exhalePathwayImg}
+              alt="Illustration showing bloom matter moving through food webs, ocean carbon pathways, and the atmosphere connection."
+              className="mr-auto w-[calc(100%+64px)] max-w-none object-contain opacity-85"
+            />
+          </div>
 
-            <div className="space-y-14 self-center lg:pr-1 lg:pl-0">
-              {nodes.map((node) => (
-                <div
-                  key={node.title}
-                  className="grid items-start gap-8 sm:grid-cols-[230px_210px]"
-                >
-                  <div className="min-w-0">
-                    <h3 className="text-[13px] leading-tight font-bold tracking-[-0.02em] text-[#123238]/90">
-                      {node.title}
-                    </h3>
+          <div className="max-w-xl space-y-14 self-center lg:justify-self-end">
+            {nodes.map((node) => (
+              <div
+                key={node.title}
+                className="grid items-start gap-8 sm:grid-cols-[minmax(0,1fr)_210px]"
+              >
+                <div className="min-w-0">
+                  <h3 className="text-[13px] leading-tight font-bold tracking-[-0.02em] text-[#123238]/90">
+                    {node.title}
+                  </h3>
 
-                    <p className="mt-2 text-[13px] leading-6 text-[#5d7c7c]">
-                      {node.text}
-                    </p>
-                  </div>
-
-                  <MiniTrace
-                    data={data}
-                    valueKey={node.trace.valueKey}
-                    label={node.trace.label}
-                    caption={node.trace.caption}
-                    footer={node.trace.footer}
-                    startDate={node.trace.startDate}
-                  />
+                  <p className="mt-2 text-[13px] leading-6 text-[#5d7c7c]">
+                    {node.text}
+                  </p>
                 </div>
-              ))}
-            </div>
+
+                <MiniTrace
+                  data={data}
+                  valueKey={node.trace.valueKey}
+                  label={node.trace.label}
+                  caption={node.trace.caption}
+                  footer={node.trace.footer}
+                  startDate={node.trace.startDate}
+                />
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1250,48 +1328,34 @@ function NorthAtlanticInhaleSection({ data }: { data: BreathCurtainRow[] }) {
       id="evidence"
       className="mx-auto w-[min(1440px,calc(100%-40px))] py-32"
     >
-      <div className="mb-12 grid grid-cols-[0.9fr_0.55fr] items-end gap-16 max-lg:grid-cols-1">
-        <div>
-          <div className="mb-5">
-            <div className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
-              Act II · The North Atlantic inhales
-            </div>
-
-            <div className="mt-3 text-xs font-bold tracking-[0.14em] text-[#5d7c7c] uppercase">
-              North Atlantic focus · daily surface data · March–June 2024
-            </div>
-          </div>
-
-          <h2 className="text-[clamp(2.8rem,6vw,6.6rem)] leading-[0.92] tracking-[-0.06em] text-[#123238]">
-            The inhale moves
-            <span className="block text-[#2bb673]">north.</span>
-          </h2>
-        </div>
-
-        <div>
-          <p className="text-[15px] leading-7 text-[#45696a]">
+      <SectionIntro
+        eyebrow="Act II · The North Atlantic inhales"
+        scope="North Atlantic focus · daily surface data · March–June 2024"
+        title="The inhale moves"
+        titleAccent="north."
+        body={
+          <>
             The hemisphere view showed a planetary pulse. Here, the story
             narrows to the North Atlantic and unfolds through time: each column
             is a day, each row is latitude, and the bright band reveals spring
-            moving northward.
-          </p>
+            moving northward. Read left to right as time, and bottom to top as
+            the bloom moving north through spring.
+          </>
+        }
+        secondaryBody={
+          <>
+            The regional chlorophyll-a peak arrives on 24 April 2024, while the
+            bright band continues to tilt toward higher latitudes as spring
+            unfolds.
+          </>
+        }
+      />
 
-          <p className="mt-4 text-[14px] leading-7 text-[#5d7c7c]">
-            This is not a static patch of green, but a seasonal movement — an
-            inhale travelling through the basin.
-          </p>
+      <div className="relative overflow-hidden px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
+        <BreathCurtainAtmosphere />
+        <div className="mx-auto max-w-6xl">
+          <BreathCurtainChart data={data} />
         </div>
-      </div>
-
-      <div className="mx-auto max-w-6xl">
-        <BreathCurtainChart data={data} />
-      </div>
-
-      <div className="mx-auto mt-5 flex max-w-6xl flex-wrap items-center justify-between gap-3 text-xs text-[#5d7c7c]">
-        <span className="inline-flex rounded-full border border-[#2bb673]/20 bg-white/65 px-3 py-2 text-[#2f6767]">
-          Read left → right as time, bottom → top as latitude · regional peak 24
-          Apr
-        </span>
       </div>
     </section>
   )
@@ -1300,7 +1364,7 @@ function NorthAtlanticInhaleSection({ data }: { data: BreathCurtainRow[] }) {
 function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
   const width = 920
   const height = 500
-  const margin = { top: 42, right: 28, bottom: 68, left: 62 }
+  const margin = { top: 36, right: 28, bottom: 78, left: 62 }
   const innerWidth = width - margin.left - margin.right
   const innerHeight = height - margin.top - margin.bottom
 
@@ -1325,12 +1389,13 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
         .range([innerHeight, 0])
 
       const values = data.map((d) => d.chl)
+      const colorDomain: [number, number] = [
+        d3.quantile(values, 0.02) ?? 0,
+        d3.quantile(values, 0.98) ?? 1.6,
+      ]
       const color = d3
         .scaleSequential<string>()
-        .domain([
-          d3.quantile(values, 0.02) ?? 0,
-          d3.quantile(values, 0.98) ?? 1.6,
-        ])
+        .domain(colorDomain)
         .interpolator((t) =>
           d3.interpolateRgbBasis([
             "#edf7f2",
@@ -1374,28 +1439,6 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
       <g transform={`translate(${margin.left},${margin.top})`}>
         <rect width={innerWidth} height={innerHeight} rx={18} fill="#edf7f2" />
 
-        {latTicks.map((lat) => (
-          <line
-            key={lat}
-            x1={0}
-            x2={innerWidth}
-            y1={yScale(lat)}
-            y2={yScale(lat)}
-            stroke="rgba(18,50,56,0.08)"
-          />
-        ))}
-
-        {months.map((month) => (
-          <line
-            key={month.toISOString()}
-            x1={xScale(month)}
-            x2={xScale(month)}
-            y1={0}
-            y2={innerHeight}
-            stroke="rgba(18,50,56,0.07)"
-          />
-        ))}
-
         {cells.map((cell, i) => (
           <rect
             key={i}
@@ -1407,32 +1450,6 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
             opacity={0.92}
           />
         ))}
-
-        <g pointerEvents="none">
-          <line
-            x1={xScale(new Date("2024-04-05"))}
-            y1={yScale(44)}
-            x2={xScale(new Date("2024-05-05"))}
-            y2={yScale(58)}
-            stroke="#2f6767"
-            strokeWidth={1.4}
-            strokeDasharray="4 5"
-            opacity={0.45}
-          />
-
-          <foreignObject
-            x={xScale(new Date("2024-03-10"))}
-            y={yScale(62)}
-            width={222}
-            height={72}
-          >
-            <div className="rounded-2xl border border-[#123238]/10 bg-white/55 px-3.5 py-2.5 text-[10.5px] leading-5 text-[#45696a] shadow-sm backdrop-blur">
-              <strong className="text-[#123238]">The pulse tilts north.</strong>
-              <br />
-              Spring reaches higher latitudes later.
-            </div>
-          </foreignObject>
-        </g>
 
         {latTicks.map((lat) => (
           <text
@@ -1459,20 +1476,22 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
         ))}
 
         <text
-          x={innerWidth / 2}
+          x={xScale(months[0] ?? new Date("2024-03-01"))}
           y={innerHeight + 64}
-          textAnchor="middle"
-          className="fill-[#45696a] text-xs"
+          dx="-0.9em"
+          textAnchor="start"
+          className="fill-[#45696a] text-[10px] tracking-[0.16em] uppercase"
         >
-          Time in spring 2024
+          TIME IN SPRING 2024
         </text>
 
         <text
-          transform={`translate(${-54},${innerHeight / 2}) rotate(-90)`}
-          textAnchor="middle"
-          className="fill-[#45696a] text-xs"
+          transform={`translate(${-54},${yScale(65) + 4}) rotate(-90)`}
+          dx="0.9em"
+          textAnchor="end"
+          className="fill-[#45696a] text-[10px] tracking-[0.16em] uppercase"
         >
-          Latitude
+          LATITUDE
         </text>
 
         <ColorLegend
@@ -1529,40 +1548,86 @@ function ColorLegend({
   )
 }
 
+function BreathCurtainAtmosphere() {
+  const cells = [
+    {
+      src: spikyRadialCellImg,
+      className:
+        "left-[3%] top-[8%] w-24 rotate-[-12deg] opacity-[0.13] blur-[0.2px]",
+    },
+    {
+      src: ovalDiatomImg,
+      className:
+        "right-[5%] top-[12%] w-28 rotate-[18deg] opacity-[0.12] blur-[0.2px]",
+    },
+    {
+      src: chainColonyImg,
+      className:
+        "right-[7%] bottom-[8%] w-40 rotate-[-18deg] opacity-[0.10] blur-[0.3px]",
+    },
+    {
+      src: starClusterImg,
+      className:
+        "left-[12%] bottom-[10%] w-20 rotate-[28deg] opacity-[0.10] blur-[0.2px]",
+    },
+  ]
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(43,182,115,0.11),transparent_32%),radial-gradient(circle_at_72%_58%,rgba(122,231,255,0.07),transparent_30%)]" />
+
+      {cells.map((cell, index) => (
+        <img
+          key={index}
+          src={cell.src}
+          alt=""
+          aria-hidden="true"
+          className={`absolute mix-blend-multiply ${cell.className}`}
+        />
+      ))}
+    </div>
+  )
+}
+
 function BloomSection({ data }: { data: HemisphereWeeklyRow[] }) {
   return (
-    <section id="bloom" className="w-full pt-16 pb-20">
-      <div className="mx-auto mb-8 w-[min(1440px,calc(100%-40px))]">
-        <div className="mb-5">
-          <div className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
-            Act I · Planetary context
-          </div>
-
-          <div className="mt-3 text-xs font-bold tracking-[0.14em] text-[#5d7c7c] uppercase">
-            Northern Hemisphere context · weekly snapshots · January–June 2024
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[0.95fr_0.6fr] items-end gap-14 max-lg:grid-cols-1">
-          <div>
-            <h2 className="text-[clamp(2.7rem,5.6vw,5.6rem)] leading-[0.92] tracking-[-0.06em] text-[#123238]">
+    <section id="bloom" className="w-full pt-20 pb-20">
+      <div className="mx-auto w-[min(1440px,calc(100%-40px))]">
+        <SectionIntro
+          eyebrow="Act I · Planetary context"
+          scope="Northern Hemisphere context · weekly snapshots · January–June 2024"
+          title={
+            <>
               The ocean breathes
               <span className="block">at hemispheric scale.</span>
-            </h2>
-          </div>
+            </>
+          }
+          body={
+            <>
+              Weekly chlorophyll-a snapshots turn daily Copernicus Marine data
+              into a slow seasonal rhythm. This wide view is the cinematic
+              opening: across the Northern Hemisphere, surface life gathers as
+              winter gives way to spring.
+            </>
+          }
+        />
 
-          <p className="max-w-xl text-[15px] leading-7 text-[#45696a]">
-            Weekly chlorophyll-a snapshots turn daily Copernicus Marine data
-            into a slow seasonal rhythm. This wide view is the cinematic
-            opening: across the Northern Hemisphere, surface life gathers as
-            winter gives way to spring. 
-          </p>
-        </div>
+        <HemisphereBloomMap data={data} />
       </div>
-
-      <HemisphereBloomMap data={data} />
     </section>
   )
+}
+
+const formatSnapshotDate = d3.timeFormat("%-d %b")
+
+function formatWeekRange(start: string, end: string) {
+  const parse = d3.timeParse("%Y-%m-%d")
+  const startDate = parse(start)
+  const endDate = parse(end)
+
+  if (!startDate || !endDate) return `${start} – ${end}`
+
+  return `${formatSnapshotDate(startDate)} – ${formatSnapshotDate(endDate)}`
 }
 
 function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
@@ -1761,7 +1826,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
 
   return (
     <div className="w-full">
-      <div className="mx-auto w-[min(100vw,1680px)]">
+      <div>
         <svg
           viewBox={`0 0 ${width} ${height}`}
           className="block h-auto w-full"
@@ -1857,7 +1922,10 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
               className="fill-[#123238] text-[28px] font-bold tracking-[-0.04em]"
             >
               {activeSnapshot
-                ? `${activeSnapshot.weekStart} – ${activeSnapshot.weekEnd}`
+                ? formatWeekRange(
+                    activeSnapshot.weekStart,
+                    activeSnapshot.weekEnd
+                  )
                 : "Weekly snapshots"}
             </text>
 
@@ -1867,26 +1935,32 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
 
             <g transform={`translate(0,${mapOffsetY + innerHeight + 42})`}>
               <rect
-                width={340}
+                width={260}
                 height={38}
                 rx={19}
                 fill="rgba(255,255,255,0.72)"
                 stroke="rgba(18,50,56,0.12)"
               />
 
-              {d3.range(0, 1.001, 0.04).map((t, i) => (
-                <rect
-                  key={i}
-                  x={18 + i * 7}
-                  y={14}
-                  width={6}
-                  height={10}
-                  fill={colorScale(t)}
-                  opacity={0.9}
-                />
-              ))}
+              {d3.range(0, 1.001, 0.125).map((t, i) => {
+                const [minValue, maxValue] = colorScale.domain()
+                const value = minValue + t * (maxValue - minValue)
 
-              <text x={235} y={23} className="fill-[#45696a] text-[11px]">
+                return (
+                  <rect
+                    key={i}
+                    x={18 + i * 12}
+                    y={14}
+                    width={9}
+                    height={10}
+                    rx={2}
+                    fill={colorScale(value)}
+                    opacity={0.95}
+                  />
+                )
+              })}
+
+              <text x={150} y={23} className="fill-[#45696a] text-[11px]">
                 more chlorophyll
               </text>
             </g>
@@ -1894,7 +1968,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
         </svg>
       </div>
 
-      <div className="mx-auto mt-4 w-[min(1440px,calc(100%-40px))]">
+      <div className="mt-4 pr-[36px] pl-[32px]">
         <div className="flex items-start gap-5 max-md:flex-col max-md:items-stretch">
           <button
             type="button"
@@ -1928,7 +2002,10 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
                 }}
               >
                 {activeSnapshot
-                  ? `${activeSnapshot.weekStart}–${activeSnapshot.weekEnd}`
+                  ? formatWeekRange(
+                      activeSnapshot.weekStart,
+                      activeSnapshot.weekEnd
+                    )
                   : ""}
               </div>
             </div>
@@ -1947,47 +2024,50 @@ function SourceSection() {
       id="source"
       className="mx-auto w-[min(1440px,calc(100%-40px))] pt-24 pb-20"
     >
-      <div className="grid items-start gap-12 border-y border-[#123238]/8 py-14 lg:grid-cols-[0.55fr_0.45fr]">
-        <div>
-          <p className="mb-4 text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
-            The invisible source
-          </p>
+      <div className="border-y border-[#123238]/8 py-12">
+        <SectionIntro
+          compact
+          className="mb-0"
+          eyebrow="The invisible source"
+          title={
+            <>
+              The ocean wakes
+              <span className="block">in spring.</span>
+            </>
+          }
+          lead={
+            <>
+              The bloom is not simply “green water.” It is sunlight becoming
+              living matter.
+            </>
+          }
+          body={
+            <>
+              In winter, storms mix the North Atlantic and replenish surface
+              waters with nutrients. But short days and deep mixing limit
+              phytoplankton growth.
+            </>
+          }
+          secondaryBody={
+            <>
+              When spring returns, longer days and a more stable surface layer
+              allow a rapid bloom to unfold.
+            </>
+          }
+          rightAside={
+            <div className="border-l border-[#2bb673]/25 pl-6">
+              <p className="text-xs font-bold tracking-[0.16em] text-[#2bb673] uppercase">
+                Reading frame
+              </p>
 
-          <h2 className="font-serif text-[clamp(2.2rem,3.7vw,3.8rem)] leading-[0.94] tracking-[-0.045em] text-[#123238]">
-            The ocean wakes
-            <span className="block">in spring.</span>
-          </h2>
-
-          <p className="mt-5 max-w-xl font-serif text-[clamp(1.1rem,1.35vw,1.35rem)] leading-[1.22] tracking-[-0.015em] text-[#123238]">
-            The bloom is not simply “green water.” It is sunlight becoming
-            living matter.
-          </p>
-        </div>
-
-        <div className="max-w-xl lg:justify-self-end">
-          <p className="text-[15px] leading-8 text-[#45696a]">
-            In winter, storms mix the North Atlantic and replenish surface
-            waters with nutrients. But short days and deep mixing limit
-            phytoplankton growth.
-          </p>
-
-          <p className="mt-5 text-[15px] leading-8 text-[#5d7c7c]">
-            When spring returns, longer days and a more stable surface layer
-            allow a rapid bloom to unfold.
-          </p>
-
-          <div className="mt-8 border-l border-[#2bb673]/25 pl-6">
-            <p className="text-xs font-bold tracking-[0.16em] text-[#2bb673] uppercase">
-              Reading frame
-            </p>
-
-            <p className="mt-3 text-sm leading-7 text-[#5d7c7c]">
-              Chlorophyll-a is the visible clue. It is the pigment that allows
-              phytoplankton to capture sunlight — and it lets us see the bloom
-              from ocean data.
-            </p>
-          </div>
-        </div>
+              <p className="mt-3 text-sm leading-7 text-[#5d7c7c]">
+                Chlorophyll-a is the visible clue. It is the pigment that allows
+                phytoplankton to capture sunlight — and it lets us see the bloom
+                from ocean data.
+              </p>
+            </div>
+          }
+        />
       </div>
     </section>
   )
@@ -1999,32 +2079,25 @@ function EndingSection() {
       id="meaning"
       className="mx-auto w-[min(1440px,calc(100%-40px))] pt-20 pb-28"
     >
-      <div className="grid grid-cols-[0.9fr_0.62fr] items-end gap-16 max-lg:grid-cols-1">
-        <div>
-          <p className="mb-5 text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
-            Every Second Breath
-          </p>
-
-          <h2 className="text-[clamp(3rem,7vw,7.4rem)] leading-[0.9] tracking-[-0.065em] text-[#123238]">
-            And the breath
-            <span className="block text-[#2bb673]">returns to us.</span>
-          </h2>
-        </div>
-
-        <div className="max-w-xl self-center lg:justify-self-end">
-          <p className="text-[15px] leading-8 text-[#5d7c7c]">
+      <SectionIntro
+        eyebrow="Every Second Breath"
+        title="And the breath"
+        titleAccent="returns to us."
+        body={
+          <>
             What begins as microscopic life becomes part of the air above the
             sea.
-          </p>
-
-          <p className="mt-5 text-[15px] leading-8 text-[#45696a]">
+          </>
+        }
+        secondaryBody={
+          <>
             The bloom is brief, seasonal, and microscopic — yet it belongs to
             the same planetary system as the air we breathe.
-          </p>
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      <p className="mt-16 max-w-5xl text-[clamp(2.1rem,4vw,4.4rem)] leading-[1.08] tracking-[-0.045em] text-[#123238]">
+      <p className="mt-4 max-w-5xl text-[clamp(2.1rem,4vw,4.4rem)] leading-[1.08] tracking-[-0.045em] text-[#123238]">
         Every second breath carries an ocean story.
       </p>
     </section>
@@ -2034,7 +2107,7 @@ function EndingSection() {
 function Footer() {
   return (
     <footer className="mx-auto w-[min(1440px,calc(100%-40px))] border-t border-[#123238]/10 pt-10 pb-14">
-      <div className="grid grid-cols-[0.9fr_0.62fr] gap-16 max-lg:grid-cols-1">
+      <div className="grid gap-16 lg:grid-cols-[0.55fr_0.45fr]">
         <div>
           <p className="text-xs font-bold tracking-[0.14em] text-[#2bb673] uppercase">
             Every Second Breath
@@ -2046,7 +2119,7 @@ function Footer() {
           </p>
         </div>
 
-        <div className="grid gap-8 sm:grid-cols-2">
+        <div className="grid max-w-xl gap-8 sm:grid-cols-2 lg:justify-self-end">
           <div>
             <p className="text-xs font-bold tracking-[0.14em] text-[#2bb673] uppercase">
               Source notes
