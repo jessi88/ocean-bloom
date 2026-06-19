@@ -42,8 +42,8 @@ type RegionalRow = {
   o2: number
   no3: number
   zooc?: number
-  dissic: number
-  spco2: number
+  dissic?: number
+  spco2?: number
 }
 
 type HemisphereWeeklyRow = {
@@ -108,7 +108,7 @@ const MICRO_VARIABLES: MicroVariable[] = [
     unit: "mg C m⁻³ day⁻¹",
     role: "The rate of new growth",
     whatItMeans:
-      "Net primary production estimates how quickly phytoplankton create new organic carbon through photosynthesis.",
+      "Net primary production estimates the rate at which phytoplankton add organic carbon to biomass after respiratory losses.",
     whyItMatters:
       "It is the bloom’s engine: sunlight is converted into new biomass that can feed ecosystems and enter carbon pathways.",
     howItAppears:
@@ -144,6 +144,8 @@ const MICRO_VARIABLES: MicroVariable[] = [
       "The echo of the breath — biology and physics shaping oxygen conditions together.",
   },
 ]
+
+const EMPTY_HEMISPHERE_ROWS: HemisphereWeeklyRow[] = []
 
 const PHYTO_ILLUSTRATIONS = {
   ovalDiatom: ovalDiatomImg,
@@ -497,6 +499,18 @@ function PhytoCurrent({ variant }: { variant: "green" | "cyan" }) {
   )
 }
 
+function parseOptionalNumber(value: unknown) {
+  if (value === undefined || value === null || value === "") return undefined
+
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : undefined
+}
+
+function parseRequiredNumber(value: unknown) {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : NaN
+}
+
 function parseBreathCurtain(): BreathCurtainRow[] {
   return d3.csvParse(breathCurtainCsv, (d) => ({
     time:
@@ -507,24 +521,18 @@ function parseBreathCurtain(): BreathCurtainRow[] {
 }
 
 function parseRegional(): RegionalRow[] {
-  return d3.csvParse(regionalCsv, (d) => {
-    const zoocValue =
-      d.zooc === undefined || d.zooc === "" ? undefined : Number(d.zooc)
-
-    return {
-      time:
-        d3.timeParse("%Y-%m-%d")(d.time as string) ??
-        new Date(d.time as string),
-      chl: Number(d.chl),
-      phyc: Number(d.phyc),
-      nppv: Number(d.nppv),
-      o2: Number(d.o2),
-      no3: Number(d.no3),
-      zooc: zoocValue,
-      dissic: Number(d.dissic),
-      spco2: Number(d.spco2),
-    }
-  })
+  return d3.csvParse(regionalCsv, (d) => ({
+    time:
+      d3.timeParse("%Y-%m-%d")(d.time as string) ?? new Date(d.time as string),
+    chl: parseRequiredNumber(d.chl),
+    phyc: parseRequiredNumber(d.phyc),
+    nppv: parseRequiredNumber(d.nppv),
+    o2: parseRequiredNumber(d.o2),
+    no3: parseRequiredNumber(d.no3),
+    zooc: parseOptionalNumber(d.zooc),
+    dissic: parseOptionalNumber(d.dissic),
+    spco2: parseOptionalNumber(d.spco2),
+  }))
 }
 
 function parseHemisphereWeekly(): HemisphereWeeklyRow[] {
@@ -789,9 +797,9 @@ function HeroSection() {
           </h1>
 
           <p className="mt-8 max-w-xl text-base leading-7 text-[#45696a]">
-            A visual story about the microscopic ocean life behind the air we
-            breathe. Each spring, phytoplankton bloom across the North Atlantic:
-            invisible as individuals, planetary in consequence.
+            A visual story about the microscopic ocean life connected to the air
+            we breathe. Each spring, phytoplankton bloom across the North
+            Atlantic: invisible as individuals, planetary in consequence.
           </p>
 
           <p className="mt-10 text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
@@ -1330,6 +1338,14 @@ function MiniTrace({
 }) {
   const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip)
 
+  const unitByKey: Record<"zooc" | "dissic" | "spco2", string> = {
+    zooc: "mmol m⁻³",
+    dissic: "mol m⁻³",
+    spco2: "Pa",
+  }
+
+  const unit = unitByKey[valueKey]
+
   const start = new Date(startDate)
 
   const sparkDataRaw = data
@@ -1351,6 +1367,8 @@ function MiniTrace({
   if (sparkDataRaw.length < 2) return null
 
   const firstValue = sparkDataRaw[0].rawValue
+
+  if (firstValue === 0) return null
 
   const sparkData = sparkDataRaw.map((d) => ({
     date: d.date,
@@ -1383,7 +1401,7 @@ function MiniTrace({
   const area = d3
     .area<(typeof sparkData)[number]>()
     .x((d) => x(d.date))
-    .y0(height - 8)
+    .y0(y(0))
     .y1((d) => y(d.value))
     .curve(d3.curveBasis)
 
@@ -1417,8 +1435,12 @@ function MiniTrace({
           value: `${nearest.value >= 0 ? "+" : ""}${nearest.value.toFixed(1)}%`,
         },
         {
-          label: "Raw value",
-          value: formatMetric(nearest.rawValue),
+          label: "Current value",
+          value: `${formatMetric(nearest.rawValue)} ${unit}`,
+        },
+        {
+          label: "Baseline",
+          value: `${formatMetric(firstValue)} ${unit}`,
         },
       ],
     })
@@ -1480,23 +1502,23 @@ function ExhaleSection({ data }: { data: RegionalRow[] }) {
   const nodes = [
     {
       title: "Matter moves through life",
-      text: "Carbon enters grazers, fish, and marine food webs.",
+      text: "The bloom becomes food for zooplankton and the wider marine food web.",
       trace: {
         valueKey: "zooc" as const,
         label: "Zooplankton response",
-        caption: "A grazing layer appears after the peak.",
-        footer: "Relative change · 23 Apr–30 Jun",
+        caption: "A zooplankton carbon signal appears after the peak.",
+        footer: "Relative change from baseline · 23 Apr–30 Jun",
         startDate: "2024-04-23",
       },
     },
     {
       title: "Matter moves through ocean pathways",
-      text: "Some carbon remains dissolved, transformed, or carried through the surface ocean.",
+      text: "Some bloom-produced carbon can later be transformed within dissolved and particulate carbon pools in the surface ocean.",
       trace: {
         valueKey: "dissic" as const,
         label: "Dissolved carbon pool",
         caption: "Carbon remains in the seawater system.",
-        footer: "Relative change · 23 Apr–30 Jun",
+        footer: "Relative change from baseline · 23 Apr–30 Jun",
         startDate: "2024-04-23",
       },
     },
@@ -1506,8 +1528,8 @@ function ExhaleSection({ data }: { data: RegionalRow[] }) {
       trace: {
         valueKey: "spco2" as const,
         label: "Air–sea CO₂ context",
-        caption: "The surface holds an exchange signal.",
-        footer: "Relative change · 23 Apr–30 Jun",
+        caption: "Surface pCO₂ gives context for air-sea exchange.",
+        footer: "Relative change from baseline · 23 Apr–30 Jun",
         startDate: "2024-04-23",
       },
     },
@@ -1532,10 +1554,10 @@ function ExhaleSection({ data }: { data: RegionalRow[] }) {
         }
         secondaryBody={
           <>
-            Some of that living carbon enters food webs. Some remains dissolved
-            or transformed within the ocean&apos;s carbon system. And at the
-            surface, seawater CO₂ conditions connect the bloom back to the
-            atmosphere above.
+            Some bloom-produced carbon can move into food webs. Some is later
+            transformed through respiration, remineralization, and the ocean's
+            dissolved inorganic carbon system. At the surface, seawater CO₂
+            conditions provide context for the ocean-atmosphere connection.
           </>
         }
       />
@@ -1668,13 +1690,25 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
 
     const x = d3
       .scaleTime()
-      .domain(d3.extent(times) as [Date, Date])
+      .domain([times[0], d3.timeDay.offset(times.at(-1)!, 1)])
       .range([0, innerWidth])
 
     const y = d3
       .scaleLinear()
       .domain(d3.extent(latitudes) as [number, number])
       .range([innerHeight, 0])
+
+    const xBand = d3
+      .scaleBand<number>()
+      .domain(times.map((d) => +d))
+      .range([0, innerWidth])
+      .paddingInner(0)
+
+    const yBand = d3
+      .scaleBand<number>()
+      .domain([...latitudes].sort((a, b) => b - a))
+      .range([0, innerHeight])
+      .paddingInner(0)
 
     const values = data.map((d) => d.chl)
     const colorDomain: [number, number] = [
@@ -1694,16 +1728,13 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
         ])(t)
       )
 
-    const timeStep = innerWidth / times.length
-    const latStep = innerHeight / latitudes.length
-
     return {
       cells: data.map((d) => ({
         ...d,
-        x: x(d.time),
-        y: y(d.latitude),
-        width: timeStep + 1,
-        height: latStep + 1,
+        x: xBand(+d.time) ?? 0,
+        y: yBand(d.latitude) ?? 0,
+        width: xBand.bandwidth() + 0.5,
+        height: yBand.bandwidth() + 0.5,
         fill: color(d.chl),
       })),
       times,
@@ -1940,8 +1971,8 @@ function BloomSection({ data }: { data: HemisphereWeeklyRow[] }) {
             <>
               Weekly chlorophyll-a snapshots turn daily Copernicus Marine data
               into a slow seasonal rhythm. This wide view is the cinematic
-              opening: across the Northern Hemisphere, surface life gathers as
-              winter gives way to spring.
+              opening. From there, the story narrows to one of the ocean's great
+              seasonal events: the North Atlantic spring bloom.
             </>
           }
         />
@@ -2005,8 +2036,10 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
       }))
   }, [data])
 
-  const activeSnapshot = groupedSnapshots[activeIndex]
-  const activeRows = activeSnapshot?.rows ?? []
+  const activeSnapshot =
+    groupedSnapshots[Math.min(activeIndex, groupedSnapshots.length - 1)]
+  const activeRows = activeSnapshot?.rows ?? EMPTY_HEMISPHERE_ROWS
+
   const activeRowByCoordinate = useMemo(() => {
     const lookup = new Map<string, HemisphereWeeklyRow>()
 
@@ -2016,6 +2049,28 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
 
     return lookup
   }, [activeRows])
+
+  const globalMapColorScale = useMemo(() => {
+    const values = data
+      .map((d) => d.chl)
+      .filter((value) => Number.isFinite(value))
+
+    return d3
+      .scaleSequential<string>()
+      .domain([
+        d3.quantile(values, 0.03) ?? 0,
+        d3.quantile(values, 0.985) ?? 2.5,
+      ])
+      .interpolator((t) =>
+        d3.interpolateRgbBasis([
+          "#edf7f2",
+          "#cfeee0",
+          "#a8e6b1",
+          "#59c98a",
+          "#2bb673",
+        ])(t)
+      )
+  }, [data])
 
   const rasterGrid = useMemo(() => {
     const longitudes = Array.from(
@@ -2043,31 +2098,10 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
       values[flippedY * longitudes.length + x] = d.chl
     })
 
-    const finiteValues = activeRows
-      .map((d) => d.chl)
-      .filter((v) => Number.isFinite(v))
-
-    const colorScale = d3
-      .scaleSequential<string>()
-      .domain([
-        d3.quantile(finiteValues, 0.03) ?? 0,
-        d3.quantile(finiteValues, 0.98) ?? 2.5,
-      ])
-      .interpolator((t) =>
-        d3.interpolateRgbBasis([
-          "#edf7f2",
-          "#cfeee0",
-          "#a8e6b1",
-          "#59c98a",
-          "#2bb673",
-        ])(t)
-      )
-
     return {
       longitudes,
       latitudes,
       values,
-      colorScale,
     }
   }, [activeRows])
 
@@ -2114,7 +2148,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
         continue
       }
 
-      const c = d3.color(rasterGrid.colorScale(value))?.rgb()
+      const c = d3.color(globalMapColorScale(value))?.rgb()
       if (!c) continue
 
       imageData.data[offset] = c.r
@@ -2134,7 +2168,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
     ctx.drawImage(sourceCanvas, 0, 0, cols, rows, 0, 0, innerWidth, innerHeight)
 
     ctx.restore()
-  }, [rasterGrid, innerWidth, innerHeight])
+  }, [rasterGrid, innerWidth, innerHeight, globalMapColorScale])
 
   useEffect(() => {
     if (!isPlaying || groupedSnapshots.length <= 1) {
@@ -2142,6 +2176,8 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
     }
 
     const timer = window.setInterval(() => {
+      setTooltip(emptyTooltip)
+
       setActiveIndex((current) => {
         if (current >= groupedSnapshots.length - 1) {
           return 0
@@ -2153,28 +2189,6 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
 
     return () => window.clearInterval(timer)
   }, [isPlaying, groupedSnapshots.length])
-
-  const colorScale = useMemo(() => {
-    const values = data
-      .map((d) => d.chl)
-      .filter((value) => Number.isFinite(value))
-
-    return d3
-      .scaleSequential<string>()
-      .domain([
-        d3.quantile(values, 0.03) ?? 0,
-        d3.quantile(values, 0.985) ?? 2.5,
-      ])
-      .interpolator((t) =>
-        d3.interpolateRgbBasis([
-          "#edf7f2",
-          "#cfeee0",
-          "#a8e6b1",
-          "#59c98a",
-          "#2bb673",
-        ])(t)
-      )
-  }, [data])
 
   const sliderProgress =
     groupedSnapshots.length > 1
@@ -2409,7 +2423,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
               />
 
               {d3.range(0, 1.001, 0.125).map((t, i) => {
-                const [minValue, maxValue] = colorScale.domain()
+                const [minValue, maxValue] = globalMapColorScale.domain()
                 const value = minValue + t * (maxValue - minValue)
 
                 return (
@@ -2420,7 +2434,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
                     width={9}
                     height={10}
                     rx={2}
-                    fill={colorScale(value)}
+                    fill={globalMapColorScale(value)}
                     opacity={0.95}
                   />
                 )
@@ -2439,7 +2453,10 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
         <div className="flex items-start gap-4 max-md:flex-col max-md:items-stretch">
           <button
             type="button"
-            onClick={() => setIsPlaying((current) => !current)}
+            onClick={() => {
+              setTooltip(emptyTooltip)
+              setIsPlaying((current) => !current)
+            }}
             className="shrink-0 rounded-full border border-[#123238]/15 bg-white/70 px-3 py-1 text-sm text-[#2f6767] backdrop-blur transition-colors duration-300 hover:border-[#2bb673]/35 hover:bg-[#2bb673]/10 hover:text-[#087a58]"
           >
             {isPlaying ? "Pause bloom" : "Play bloom"}
@@ -2455,6 +2472,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
                 max={Math.max(0, groupedSnapshots.length - 1)}
                 value={activeIndex}
                 onChange={(event) => {
+                  setTooltip(emptyTooltip)
                   setActiveIndex(Number(event.target.value))
                   setIsPlaying(false)
                 }}
@@ -2552,8 +2570,8 @@ function EndingSection() {
         titleAccent="returns to us."
         body={
           <>
-            What begins as microscopic life becomes part of the air above the
-            sea.
+            What begins as microscopic life helps shape the ocean-atmosphere
+            system above the sea.
           </>
         }
         secondaryBody={
@@ -2596,8 +2614,9 @@ function Footer() {
               <li>Chlorophyll-a as proxy for phytoplankton biomass.</li>
               <li>Daily surface layer, March–June 2024.</li>
               <li>
-                Variables: chlorophyll-a, nitrate, net primary production,
-                dissolved oxygen.
+                Variables: chlorophyll-a, phytoplankton carbon biomass, nitrate,
+                net primary production, dissolved oxygen, total zooplankton,
+                dissolved inorganic carbon, and surface pCO₂.
               </li>
             </ul>
           </div>
