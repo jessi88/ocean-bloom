@@ -242,7 +242,7 @@ function ChartTooltip({ tooltip }: { tooltip: TooltipState }) {
 
   return (
     <div
-      className="pointer-events-none fixed z-[100] max-w-[min(240px,calc(100vw-24px))] rounded-2xl border border-[#123238]/10 bg-white/90 px-4 py-3 text-left shadow-[0_18px_60px_rgba(18,50,56,0.14)] backdrop-blur-xl"
+      className="pointer-events-none fixed z-100 max-w-[min(240px,calc(100vw-24px))] rounded-2xl border border-[#123238]/10 bg-white/90 px-4 py-3 text-left shadow-[0_18px_60px_rgba(18,50,56,0.14)] backdrop-blur-xl"
       style={{
         left: tooltip.x,
         top: tooltip.y,
@@ -574,7 +574,7 @@ function App() {
     <main className="min-h-screen overflow-hidden bg-[#f4f8f3] text-[#123238]">
       <OceanBackground />
       <SiteHeader />
-      <div aria-hidden="true" className="h-[32px] sm:h-10 lg:h-14" />
+      <div aria-hidden="true" className="h-8 sm:h-10 lg:h-14" />
       <HeroSection />
       <SourceSection />
       <BloomSection data={hemisphereWeeklyData} />
@@ -689,7 +689,7 @@ function OceanBackground() {
     <>
       <div className="pointer-events-none fixed inset-0 -z-20 bg-[radial-gradient(circle_at_12%_4%,rgba(122,231,255,0.18),transparent_34rem),radial-gradient(circle_at_82%_9%,rgba(141,247,180,0.14),transparent_28rem),linear-gradient(180deg,#06151d_0%,#071822_36%,#03080c_100%)]" />
       <div className="pointer-events-none fixed inset-0 -z-10 opacity-50 [background:linear-gradient(115deg,transparent_0_17%,rgba(100,255,210,0.045)_29%,transparent_43%),repeating-radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.05),rgba(255,255,255,0.05)_1px,transparent_2px,transparent_18px)]" />
-      <div className="pointer-events-none fixed right-[-10vw] -bottom-[20vh] left-[-10vw] -z-10 h-[44vh] blur-2xl [background:radial-gradient(ellipse_at_center,rgba(61,217,138,0.15),transparent_65%),linear-gradient(180deg,transparent,rgba(4,10,14,0.95))]" />
+      <div className="pointer-events-none fixed right-[-10vw] bottom-[-20vh] left-[-10vw] -z-10 h-[44vh] blur-2xl [background:radial-gradient(ellipse_at_center,rgba(61,217,138,0.15),transparent_65%),linear-gradient(180deg,transparent,rgba(4,10,14,0.95))]" />
     </>
   )
 }
@@ -778,7 +778,7 @@ function HeroSection() {
       className="mx-auto grid min-h-[58svh] w-[min(1440px,calc(100%-32px))] items-center pt-0 pb-0 sm:min-h-[58svh] sm:w-[min(1440px,calc(100%-40px))] sm:pt-2 md:min-h-[62svh] md:pt-4 lg:min-h-[72svh] lg:pt-16"
     >
       <div className="relative grid min-h-[min(560px,calc(100svh-150px))] items-center">
-        <div className="pointer-events-none absolute top-4 right-0 aspect-square w-[min(62vw,790px)] min-w-[420px] translate-x-[24%] rounded-full opacity-80 max-md:right-[-20vw] max-md:w-[95vw] max-md:min-w-0 max-md:translate-x-0 max-md:opacity-45">
+        <div className="pointer-events-none absolute top-4 right-0 aspect-square w-[min(62vw,790px)] min-w-105 translate-x-[24%] rounded-full opacity-80 max-md:right-[-20vw] max-md:w-[95vw] max-md:min-w-0 max-md:translate-x-0 max-md:opacity-45">
           <div className="absolute inset-[11%] animate-slow-turn rounded-full opacity-45 blur-xl [background:radial-gradient(circle_at_42%_45%,rgba(141,247,180,0.34),transparent_26%),radial-gradient(circle_at_52%_55%,rgba(122,231,255,0.11),transparent_58%),conic-gradient(from_30deg,rgba(141,247,180,0.11),rgba(122,231,255,0.07),rgba(255,245,214,0.08),rgba(141,247,180,0.11))]" />
           <div className="absolute inset-[21%] animate-breathe rounded-full border border-[#2bb673]/8 opacity-55 shadow-[0_0_70px_rgba(141,247,180,0.18),inset_0_0_70px_rgba(122,231,255,0.07)]" />
           <FloatingPhytoIllustrations />
@@ -881,7 +881,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
 
   return (
     <div className="relative grid items-start gap-10 md:grid-cols-[0.72fr_0.98fr] md:gap-10 lg:ml-10 lg:gap-14">
-      <div className="relative min-h-[420px] pt-6 sm:min-h-[460px] md:min-h-[520px] lg:min-h-[560px]">
+      <div className="relative min-h-105 pt-6 sm:min-h-115 md:min-h-130 lg:min-h-140">
         <div className="relative z-10 max-w-md text-left">
           <p className="text-xs font-bold tracking-[0.18em] text-[rgba(43,182,115,0.8)] uppercase">
             Explore the microscopic engine
@@ -899,7 +899,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
         </div>
       </div>
 
-      <div className="relative min-h-0 px-0 pt-6 pb-8 md:min-h-[520px] md:px-6 lg:min-h-[560px] lg:px-8">
+      <div className="relative min-h-0 px-0 pt-6 pb-8 md:min-h-130 md:px-6 lg:min-h-140 lg:px-8">
         <div className="mb-6">
           <p className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
             Bloom layer
@@ -941,7 +941,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
           </span>
         </div>
 
-        <div className="mt-8 min-h-[190px]">
+        <div className="mt-8 min-h-47.5">
           <MicroEditorialNote
             title="What it means"
             text={selectedVariable.whatItMeans}
@@ -980,9 +980,10 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
               color="#2bb673"
             />
 
-            <p className="mt-2 max-w-[520px] pl-[13px] text-[11px] leading-5 text-[#7b9695]">
+            <p className="mt-2 max-w-130 pl-3.25 text-[11px] leading-5 text-[#7b9695]">
               Each trace uses its own scale to reveal timing and shape, not
-              absolute magnitude.
+              absolute magnitude. Hover or tap the trace to inspect daily
+              values.
             </p>
           </div>
         </div>
@@ -993,7 +994,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
 
 function MicroEditorialNote({ title, text }: { title: string; text: string }) {
   return (
-    <div className="grid min-h-[88px] items-start gap-4 border-t border-[#123238]/10 pt-4 sm:grid-cols-[150px_1fr]">
+    <div className="grid min-h-22 items-start gap-4 border-t border-[#123238]/10 pt-4 sm:grid-cols-[150px_1fr]">
       <p className="m-0 text-xs leading-7 font-bold tracking-[0.16em] text-[#2bb673] uppercase">
         {title}
       </p>
@@ -1032,7 +1033,7 @@ function InsideMechanismStrip() {
       </div>
 
       <div className="relative">
-        <div className="pointer-events-none absolute top-5 right-0 left-0 hidden h-px bg-gradient-to-r from-[#2bb673]/0 via-[#2bb673]/35 to-[#2bb673]/0 sm:block" />
+        <div className="pointer-events-none absolute top-5 right-0 left-0 hidden h-px bg-linear-to-r from-[#2bb673]/0 via-[#2bb673]/35 to-[#2bb673]/0 sm:block" />
 
         <div className="grid gap-6 sm:grid-cols-4 lg:gap-8">
           {steps.map((step, index) => (
@@ -1141,7 +1142,7 @@ function MicroIllustrationField({
               type="button"
               onClick={() => onSelect(item.key)}
               aria-label={`Explore ${item.label}`}
-              className={`absolute grid h-[var(--micro-size)] w-[var(--micro-size)] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-all duration-500 focus-visible:ring-2 focus-visible:ring-[#2bb673]/35 focus-visible:outline-none md:h-[calc(var(--micro-size)*0.78)] md:w-[calc(var(--micro-size)*0.78)] xl:h-[var(--micro-size)] xl:w-[var(--micro-size)] ${
+              className={`absolute grid h-(--micro-size) w-(--micro-size) -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-all duration-500 focus-visible:ring-2 focus-visible:ring-[#2bb673]/35 focus-visible:outline-none md:h-[calc(var(--micro-size)*0.78)] md:w-[calc(var(--micro-size)*0.78)] xl:h-(--micro-size) xl:w-(--micro-size) ${
                 isSelected
                   ? "z-20 scale-110"
                   : "z-10 scale-100 opacity-62 hover:scale-105 hover:opacity-90"
@@ -1190,6 +1191,39 @@ function MicroIllustrationField({
   )
 }
 
+function useReplayOnView<T extends Element>(threshold = 0.45) {
+  const ref = useRef<T | null>(null)
+  const [replayKey, setReplayKey] = useState(0)
+  const wasVisible = useRef(false)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return undefined
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !wasVisible.current) {
+          setReplayKey((current) => current + 1)
+          wasVisible.current = true
+        }
+
+        if (!entry.isIntersecting) {
+          wasVisible.current = false
+        }
+      },
+      {
+        threshold,
+      }
+    )
+
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [threshold])
+
+  return { viewRef: ref, replayKey }
+}
+
 function MiniSparkline({
   data,
   variableKey,
@@ -1200,6 +1234,7 @@ function MiniSparkline({
   color: string
 }) {
   const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip)
+  const { viewRef, replayKey } = useReplayOnView<HTMLDivElement>(0.45)
 
   const width = 360
   const height = 90
@@ -1264,7 +1299,7 @@ function MiniSparkline({
   }
 
   return (
-    <div className="relative">
+    <div ref={viewRef} className="relative">
       <svg
         viewBox={`0 0 ${width} ${height}`}
         className="block w-full"
@@ -1272,11 +1307,14 @@ function MiniSparkline({
         aria-label={`Daily trend for ${variable.label}`}
       >
         <path
+          key={`${variableKey}-${replayKey}`}
+          className="animate-line-draw"
           d={line(sparkData) ?? ""}
           fill="none"
           stroke={color}
           strokeWidth={2.4}
           opacity={0.9}
+          pathLength={1}
         />
 
         <line
@@ -1337,6 +1375,7 @@ function MiniTrace({
   startDate: string
 }) {
   const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip)
+  const { viewRef, replayKey } = useReplayOnView<HTMLDivElement>(0.45)
 
   const unitByKey: Record<"zooc" | "dissic" | "spco2", string> = {
     zooc: "mmol m⁻³",
@@ -1447,7 +1486,7 @@ function MiniTrace({
   }
 
   return (
-    <div className="relative w-[220px] shrink-0 pt-0">
+    <div ref={viewRef} className="relative w-55 shrink-0 pt-0">
       <p className="text-[10px] font-bold tracking-[0.12em] whitespace-nowrap text-[#2bb673] uppercase">
         {label}
       </p>
@@ -1456,11 +1495,17 @@ function MiniTrace({
 
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="mt-3 h-10 w-[190px] overflow-visible"
+        className="mt-3 h-10 w-47.5 overflow-visible"
         role="img"
         aria-label={`${label}: ${caption}`}
       >
-        <path d={area(sparkData) ?? ""} fill="#2bb673" fillOpacity={0.08} />
+        <path
+          key={`${valueKey}-area-${replayKey}`}
+          className="animate-area-rise"
+          d={area(sparkData) ?? ""}
+          fill="#2bb673"
+          fillOpacity={0.08}
+        />
 
         <line
           x1={0}
@@ -1472,11 +1517,14 @@ function MiniTrace({
         />
 
         <path
+          key={`${valueKey}-line-${replayKey}`}
+          className="animate-line-draw"
           d={line(sparkData) ?? ""}
           fill="none"
           stroke="#2bb673"
           strokeWidth={1.5}
           strokeLinecap="round"
+          pathLength={1}
         />
 
         <rect
@@ -1529,7 +1577,8 @@ function ExhaleSection({ data }: { data: RegionalRow[] }) {
         valueKey: "spco2" as const,
         label: "Air–sea CO₂ context",
         caption: "Surface pCO₂ gives context for air-sea exchange.",
-        footer: "Relative change from baseline · 23 Apr–30 Jun",
+        footer:
+          "Relative change from baseline · 23 Apr–30 Jun · Hover or tap the traces to compare relative change, current values, and baselines.",
         startDate: "2024-04-23",
       },
     },
@@ -1659,12 +1708,14 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
         ? Math.max(340, Math.round(width * 0.58))
         : 500
 
-  const height = chartHeight + (isSmallScreen ? 54 : 0)
+  const hoverNoteExtraHeight = 26
+
+  const height = chartHeight + (isSmallScreen ? 54 : 0) + hoverNoteExtraHeight
 
   const margin = {
     top: width < 520 ? 34 : 36,
     right: width < 520 ? 18 : 28,
-    bottom: isSmallScreen ? 112 : 78,
+    bottom: (isSmallScreen ? 112 : 78) + hoverNoteExtraHeight,
     left: width < 520 ? 48 : 62,
   }
   const innerWidth = width - margin.left - margin.right
@@ -1881,6 +1932,16 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
             className="fill-[#45696a] text-[10px] tracking-[0.16em] uppercase"
           >
             TIME IN SPRING 2024
+          </text>
+
+          <text
+            x={timeLabelX}
+            y={timeLabelY + 20}
+            textAnchor="start"
+            className="fill-[#6f8988] text-[11px]"
+          >
+            Hover or tap across the curtain to inspect date, latitude, and
+            chlorophyll-a concentration.
           </text>
 
           <text
@@ -2449,7 +2510,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
         <ChartTooltip tooltip={tooltip} />
       </div>
 
-      <div className="mt-4 px-0 sm:pr-[36px] sm:pl-[32px]">
+      <div className="mt-4 px-0 sm:pr-9 sm:pl-8">
         <div className="flex items-start gap-4 max-md:flex-col max-md:items-stretch">
           <button
             type="button"
@@ -2498,6 +2559,9 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
             <span className="pt-2 text-xs text-[#45696a]">Jun</span>
           </div>
         </div>
+        <p className="mt-4 text-xs leading-5 text-[#6f8988]">
+          Hover or tap the map to inspect coordinates and chlorophyll-a values.
+        </p>
       </div>
     </div>
   )
