@@ -431,3 +431,15 @@
     transition: none !important;
   }
 }
+
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+img,
+svg,
+canvas {
+  max-width: 100%;
+}

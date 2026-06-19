@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import * as d3 from "d3"
 
 import breathCurtainCsv from "@/data/processed/breath_curtain_chl_daily.csv?raw"
@@ -160,12 +166,39 @@ const MICRO_VARIABLE_IMAGES: Record<MicroVariableKey, string> = {
   o2: o2Illustration,
 }
 
+function useResponsiveSvgWidth(
+  ref: React.RefObject<HTMLElement | null>,
+  maxWidth: number,
+  minWidth = 320
+) {
+  const [width, setWidth] = useState(maxWidth)
+
+  useLayoutEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    const updateWidth = () => {
+      const nextWidth = element.getBoundingClientRect().width
+      setWidth(Math.max(minWidth, Math.min(maxWidth, nextWidth)))
+    }
+
+    updateWidth()
+
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(element)
+
+    return () => observer.disconnect()
+  }, [ref, maxWidth, minWidth])
+
+  return width
+}
+
 function FloatingPhytoIllustrations() {
   const organisms: {
     key: PhytoIllustrationKey
     x: string
     y: string
-    size: number
+    size: string
     opacity: number
     delay: string
     dx: string
@@ -176,7 +209,7 @@ function FloatingPhytoIllustrations() {
       key: "roundCell",
       x: "42%",
       y: "21%",
-      size: 150,
+      size: "clamp(64px, 13vw, 150px)",
       opacity: 0.3,
       delay: "-3.4s",
       dx: "-14px",
@@ -187,7 +220,7 @@ function FloatingPhytoIllustrations() {
       key: "spikyRadialCell",
       x: "55%",
       y: "38%",
-      size: 170,
+      size: "clamp(72px, 14vw, 170px)",
       opacity: 0.24,
       delay: "-5.1s",
       dx: "-18px",
@@ -198,7 +231,7 @@ function FloatingPhytoIllustrations() {
       key: "spiralFilament",
       x: "38%",
       y: "55%",
-      size: 170,
+      size: "clamp(72px, 14vw, 170px)",
       opacity: 0.24,
       delay: "-4.3s",
       dx: "-16px",
@@ -209,7 +242,7 @@ function FloatingPhytoIllustrations() {
       key: "ovalDiatom",
       x: "24%",
       y: "43%",
-      size: 145,
+      size: "clamp(62px, 12vw, 145px)",
       opacity: 0.26,
       delay: "-1.2s",
       dx: "18px",
@@ -344,10 +377,10 @@ function PhytoCurrent({ variant }: { variant: "green" | "cyan" }) {
         ]
 
   return (
-    <div className="pointer-events-none mx-auto -mt-5 grid h-32 w-[min(1440px,calc(100%-40px))] place-items-center opacity-100">
+    <div className="pointer-events-none mx-auto grid h-16 w-[min(1440px,calc(100%-32px))] place-items-center opacity-100 sm:h-20 sm:w-[min(1440px,calc(100%-40px))] lg:h-32">
       <svg
         viewBox="0 0 980 100"
-        className="h-28 w-full max-w-5xl overflow-visible"
+        className="h-16 w-full max-w-5xl overflow-visible sm:h-20 lg:h-28"
         aria-hidden="true"
       >
         <path
@@ -459,14 +492,27 @@ function App() {
     <main className="min-h-screen overflow-hidden bg-[#f4f8f3] text-[#123238]">
       <OceanBackground />
       <SiteHeader />
+      <div aria-hidden="true" className="h-[32px] sm:h-10 lg:h-14" />
       <HeroSection />
       <SourceSection />
       <BloomSection data={hemisphereWeeklyData} />
-      <PhytoCurrent variant="cyan" />
+
+      <div className="my-3 sm:my-5 lg:my-12">
+        <PhytoCurrent variant="green" />
+      </div>
+
       <NorthAtlanticInhaleSection data={breathCurtainData} />
-      <PhytoCurrent variant="green" />
+
+      <div className="my-1 sm:my-2 lg:my-6">
+        <PhytoCurrent variant="green" />
+      </div>
+
       <InsideBreathSection data={regionalData} />
-      <PhytoCurrent variant="cyan" />
+
+      <div className="my-3 sm:my-5 lg:my-12">
+        <PhytoCurrent variant="green" />
+      </div>
+
       <ExhaleSection data={regionalData} />
       <EndingSection />
 
@@ -500,7 +546,7 @@ function SectionIntro({
 }) {
   return (
     <div
-      className={`grid items-end gap-12 lg:grid-cols-[0.55fr_0.45fr] ${className}`}
+      className={`grid items-start gap-8 md:gap-10 lg:grid-cols-[0.55fr_0.45fr] lg:items-end lg:gap-12 ${className}`}
     >
       <div>
         <div className="mb-5">
@@ -518,7 +564,7 @@ function SectionIntro({
         <h2
           className={
             compact
-              ? "font-serif text-[clamp(2.2rem,3.7vw,3.8rem)] leading-[0.94] tracking-[-0.045em] text-[#123238]"
+              ? "font-serif text-[clamp(2.1rem,10vw,3.6rem)] leading-[0.94] tracking-[-0.045em] text-[#123238]"
               : "text-[clamp(2.7rem,5.6vw,5.6rem)] leading-[0.92] tracking-[-0.06em] text-[#123238]"
           }
         >
@@ -568,38 +614,73 @@ function OceanBackground() {
 
 function SiteHeader() {
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-[#123238]/10 bg-[#f8fbf5]/75 backdrop-blur-xl">
-      <div className="mx-auto flex h-14 w-[min(1440px,calc(100%-40px))] items-center justify-between">
-        <a
-          href="#top"
-          className="flex items-center gap-3 text-xs font-bold tracking-[0.18em] text-[#45696a] uppercase"
-        >
-          <img
-            src={starClusterImg}
-            alt=""
-            aria-hidden="true"
-            className="-ml-2 h-5 w-5 opacity-45"
-          />
-          <span>Every Second Breath</span>
-        </a>
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-[#123238]/8 bg-[#f4f8f3]/75 backdrop-blur-xl">
+      <div className="mx-auto w-[min(1440px,calc(100%-32px))] sm:w-[min(1440px,calc(100%-40px))]">
+        <div className="flex h-9 items-center justify-between gap-4 sm:h-14 sm:gap-6">
+          <a
+            href="#top"
+            className="flex items-center gap-2 text-[10px] tracking-[0.12em] text-[#45696a] uppercase sm:gap-3 sm:text-xs sm:tracking-[0.14em]"
+          >
+            <img
+              src={starClusterImg}
+              alt=""
+              aria-hidden="true"
+              className="-ml-1 h-4 w-4 object-contain opacity-80 sm:-ml-2 sm:h-5 sm:w-5 sm:opacity-100"
+            />
+            <span>Every Second Breath</span>
+          </a>
+
+          <nav
+            aria-label="Main navigation"
+            className="hidden items-center gap-4 text-[12px] text-[#345c5d] sm:flex md:gap-6 md:text-sm"
+          >
+            <a href="#bloom" className="transition hover:text-[#2bb673]">
+              Bloom
+            </a>
+            <a href="#evidence" className="transition hover:text-[#2bb673]">
+              North Atlantic
+            </a>
+            <a href="#inside" className="transition hover:text-[#2bb673]">
+              Inside
+            </a>
+            <a href="#exhale" className="transition hover:text-[#2bb673]">
+              Exhale
+            </a>
+            <a href="#meaning" className="transition hover:text-[#2bb673]">
+              Meaning
+            </a>
+          </nav>
+        </div>
 
         <nav
-          aria-label="Main navigation"
-          className="flex items-center gap-6 text-sm text-[#345c5d]"
+          aria-label="Mobile navigation"
+          className="flex items-center gap-3 overflow-x-auto border-t border-[#123238]/8 py-2 text-[10px] tracking-[0.02em] text-[#345c5d] sm:hidden"
         >
-          <a href="#bloom" className="transition hover:text-[#2bb673]">
+          <a href="#bloom" className="shrink-0 transition hover:text-[#2bb673]">
             Bloom
           </a>
-          <a href="#evidence" className="transition hover:text-[#2bb673]">
+          <a
+            href="#evidence"
+            className="shrink-0 transition hover:text-[#2bb673]"
+          >
             North Atlantic
           </a>
-          <a href="#inside" className="transition hover:text-[#2bb673]">
+          <a
+            href="#inside"
+            className="shrink-0 transition hover:text-[#2bb673]"
+          >
             Inside
           </a>
-          <a href="#exhale" className="transition hover:text-[#2bb673]">
+          <a
+            href="#exhale"
+            className="shrink-0 transition hover:text-[#2bb673]"
+          >
             Exhale
           </a>
-          <a href="#meaning" className="transition hover:text-[#2bb673]">
+          <a
+            href="#meaning"
+            className="shrink-0 transition hover:text-[#2bb673]"
+          >
             Meaning
           </a>
         </nav>
@@ -612,16 +693,16 @@ function HeroSection() {
   return (
     <section
       id="top"
-      className="mx-auto grid min-h-[72svh] w-[min(1440px,calc(100%-40px))] items-center pt-16 pb-0"
+      className="mx-auto grid min-h-[58svh] w-[min(1440px,calc(100%-32px))] items-center pt-0 pb-0 sm:min-h-[58svh] sm:w-[min(1440px,calc(100%-40px))] sm:pt-2 md:min-h-[62svh] md:pt-4 lg:min-h-[72svh] lg:pt-16"
     >
       <div className="relative grid min-h-[min(560px,calc(100svh-150px))] items-center">
-        <div className="pointer-events-none absolute top-4 right-0 aspect-square w-[min(62vw,790px)] min-w-[420px] translate-x-[24%] rounded-full max-md:right-[-15vw] max-md:w-[92vw] max-md:min-w-0 max-md:translate-x-0">
+        <div className="pointer-events-none absolute top-4 right-0 aspect-square w-[min(62vw,790px)] min-w-[420px] translate-x-[24%] rounded-full opacity-80 max-md:right-[-20vw] max-md:w-[95vw] max-md:min-w-0 max-md:translate-x-0 max-md:opacity-45">
           <div className="absolute inset-[11%] animate-slow-turn rounded-full opacity-45 blur-xl [background:radial-gradient(circle_at_42%_45%,rgba(141,247,180,0.34),transparent_26%),radial-gradient(circle_at_52%_55%,rgba(122,231,255,0.11),transparent_58%),conic-gradient(from_30deg,rgba(141,247,180,0.11),rgba(122,231,255,0.07),rgba(255,245,214,0.08),rgba(141,247,180,0.11))]" />
           <div className="absolute inset-[21%] animate-breathe rounded-full border border-[#2bb673]/8 opacity-55 shadow-[0_0_70px_rgba(141,247,180,0.18),inset_0_0_70px_rgba(122,231,255,0.07)]" />
           <FloatingPhytoIllustrations />
         </div>
 
-        <div className="relative z-10 max-w-5xl -translate-y-6 self-center">
+        <div className="relative z-10 max-w-5xl -translate-y-6 self-center max-md:translate-y-0">
           <div className="mb-5 text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
             North Atlantic spring bloom · March–June 2024
           </div>
@@ -652,7 +733,7 @@ function InsideBreathSection({ data }: { data: RegionalRow[] }) {
   return (
     <section
       id="inside"
-      className="mx-auto w-[min(1440px,calc(100%-40px))] py-32"
+      className="mx-auto w-[min(1440px,calc(100%-32px))] py-16 sm:w-[min(1440px,calc(100%-40px))] sm:py-20 lg:py-28"
     >
       <SectionIntro
         eyebrow="Act III · Inside the breath"
@@ -717,18 +798,18 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
     stats.find((item) => item.key === selectedVariable.key) ?? stats[0]
 
   return (
-    <div className="relative ml-10 grid grid-cols-[0.72fr_0.98fr] items-start gap-14 max-xl:grid-cols-1">
-      <div className="relative min-h-[560px] pt-6 max-xl:min-h-[500px]">
-        <div className="relative z-20 mx-auto max-w-[460px] text-center">
+    <div className="relative grid items-start gap-10 md:grid-cols-[0.72fr_0.98fr] md:gap-10 lg:ml-10 lg:gap-14">
+      <div className="relative min-h-[420px] pt-6 sm:min-h-[460px] md:min-h-[520px] lg:min-h-[560px]">
+        <div className="relative z-10 max-w-md text-left">
           <p className="text-xs font-bold tracking-[0.18em] text-[rgba(43,182,115,0.8)] uppercase">
             Explore the microscopic engine
           </p>
-          <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-[#5d7c7c]">
+          <p className="mt-3 max-w-md text-sm leading-6 text-[#5d7c7c]">
             Each illustration represents one layer of the bloom system.
           </p>
         </div>
 
-        <div className="relative mx-auto -mt-2 w-[min(600px,100%)] max-xl:mt-6">
+        <div className="relative -mt-2 w-[min(600px,100%)] max-w-md max-xl:mt-6">
           <MicroIllustrationField
             selectedKey={selectedKey}
             onSelect={setSelectedKey}
@@ -736,7 +817,7 @@ function MicroBloomExplorer({ data }: { data: RegionalRow[] }) {
         </div>
       </div>
 
-      <div className="relative min-h-[560px] px-8 pt-6 pb-8 max-xl:min-h-0">
+      <div className="relative min-h-0 px-0 pt-6 pb-8 md:min-h-[520px] md:px-6 lg:min-h-[560px] lg:px-8">
         <div className="mb-6">
           <p className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
             Bloom layer
@@ -861,7 +942,7 @@ function InsideMechanismStrip() {
   ]
 
   return (
-    <div className="mx-auto mt-14 w-[min(1180px,100%)] pt-10">
+    <div className="mt-14 w-full pt-10 lg:ml-10 lg:w-[calc(100%-2.5rem)]">
       <div className="mb-8">
         <p className="text-xs font-bold tracking-[0.18em] text-[#2bb673] uppercase">
           Mechanism in one breath
@@ -869,9 +950,9 @@ function InsideMechanismStrip() {
       </div>
 
       <div className="relative">
-        <div className="pointer-events-none absolute top-5 right-0 left-0 hidden h-px bg-gradient-to-r from-[#2bb673]/0 via-[#2bb673]/35 to-[#2bb673]/0 lg:block" />
+        <div className="pointer-events-none absolute top-5 right-0 left-0 hidden h-px bg-gradient-to-r from-[#2bb673]/0 via-[#2bb673]/35 to-[#2bb673]/0 sm:block" />
 
-        <div className="grid gap-8 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-4 lg:gap-8">
           {steps.map((step, index) => (
             <div key={step.title} className="relative pt-10">
               <div className="absolute top-3 left-0 h-4 w-4 rounded-full border border-[#2bb673]/30 bg-[#f4f8f3] shadow-[0_0_22px_rgba(43,182,115,0.18)]" />
@@ -978,17 +1059,18 @@ function MicroIllustrationField({
               type="button"
               onClick={() => onSelect(item.key)}
               aria-label={`Explore ${item.label}`}
-              className={`absolute grid -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-all duration-500 focus-visible:ring-2 focus-visible:ring-[#2bb673]/35 focus-visible:outline-none ${
+              className={`absolute grid h-[var(--micro-size)] w-[var(--micro-size)] -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-all duration-500 focus-visible:ring-2 focus-visible:ring-[#2bb673]/35 focus-visible:outline-none md:h-[calc(var(--micro-size)*0.78)] md:w-[calc(var(--micro-size)*0.78)] xl:h-[var(--micro-size)] xl:w-[var(--micro-size)] ${
                 isSelected
                   ? "z-20 scale-110"
                   : "z-10 scale-100 opacity-62 hover:scale-105 hover:opacity-90"
               }`}
-              style={{
-                left: position.x,
-                top: position.y,
-                width: position.size,
-                height: position.size,
-              }}
+              style={
+                {
+                  left: position.x,
+                  top: position.y,
+                  "--micro-size": position.size,
+                } as React.CSSProperties
+              }
             >
               <span
                 className={`absolute inset-0 rounded-full transition-all duration-500 ${
@@ -1253,7 +1335,7 @@ function ExhaleSection({ data }: { data: RegionalRow[] }) {
   return (
     <section
       id="exhale"
-      className="mx-auto w-[min(1440px,calc(100%-40px))] pt-32 pb-12"
+      className="m:pb-16 mx-auto w-[min(1440px,calc(100%-32px))] py-16 pb-12 sm:w-[min(1440px,calc(100%-40px))] sm:py-20 lg:py-28 lg:pb-22"
     >
       <SectionIntro
         eyebrow="Act IV · Exhale"
@@ -1278,14 +1360,14 @@ function ExhaleSection({ data }: { data: RegionalRow[] }) {
       />
 
       <div className="relative mt-8 overflow-visible py-4 sm:py-6 lg:py-8">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_24%_48%,rgba(43,182,115,0.12),transparent_30%),radial-gradient(circle_at_78%_55%,rgba(89,188,211,0.07),transparent_28%)]" />
+        <div className="pointer-events-none absolute inset-0 hidden bg-[radial-gradient(circle_at_24%_48%,rgba(43,182,115,0.12),transparent_24%),radial-gradient(circle_at_78%_55%,rgba(89,188,211,0.07),transparent_28%)] md:block" />
 
-        <div className="relative z-10 grid items-center gap-12 lg:grid-cols-[0.55fr_0.45fr]">
-          <div className="relative lg:-mt-10 lg:-mr-16">
+        <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[0.55fr_0.45fr] lg:gap-12">
+          <div className="relative -mt-4 lg:-mt-10 lg:-mr-16">
             <img
               src={exhalePathwayImg}
               alt="Illustration showing bloom matter moving through food webs, ocean carbon pathways, and the atmosphere connection."
-              className="mr-auto w-[calc(100%+64px)] max-w-none object-contain opacity-85"
+              className="mr-auto w-full max-w-none object-contain opacity-65 lg:w-[calc(100%+64px)]"
             />
           </div>
 
@@ -1326,7 +1408,7 @@ function NorthAtlanticInhaleSection({ data }: { data: BreathCurtainRow[] }) {
   return (
     <section
       id="evidence"
-      className="mx-auto w-[min(1440px,calc(100%-40px))] py-32"
+      className="mx-auto w-[min(1440px,calc(100%-32px))] pt-20 pb-12 sm:w-[min(1440px,calc(100%-40px))] sm:pt-22 sm:pb-14 lg:pt-28 lg:pb-16"
     >
       <SectionIntro
         eyebrow="Act II · The North Atlantic inhales"
@@ -1351,8 +1433,7 @@ function NorthAtlanticInhaleSection({ data }: { data: BreathCurtainRow[] }) {
         }
       />
 
-      <div className="relative overflow-hidden px-5 py-8 sm:px-8 lg:px-12 lg:py-12">
-        <BreathCurtainAtmosphere />
+      <div className="relative overflow-hidden px-0 py-7 sm:px-8 lg:px-12 lg:py-12">
         <div className="mx-auto max-w-6xl">
           <BreathCurtainChart data={data} />
         </div>
@@ -1362,9 +1443,26 @@ function NorthAtlanticInhaleSection({ data }: { data: BreathCurtainRow[] }) {
 }
 
 function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
-  const width = 920
-  const height = 500
-  const margin = { top: 36, right: 28, bottom: 78, left: 62 }
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  const width = useResponsiveSvgWidth(containerRef, 920)
+  const isSmallScreen = width < 640
+
+  const chartHeight =
+    width < 520
+      ? Math.max(250, Math.round(width * 0.62))
+      : width < 760
+        ? Math.max(340, Math.round(width * 0.58))
+        : 500
+
+  const height = chartHeight + (isSmallScreen ? 54 : 0)
+
+  const margin = {
+    top: width < 520 ? 34 : 36,
+    right: width < 520 ? 18 : 28,
+    bottom: isSmallScreen ? 112 : 78,
+    left: width < 520 ? 48 : 62,
+  }
   const innerWidth = width - margin.left - margin.right
   const innerHeight = height - margin.top - margin.bottom
 
@@ -1429,78 +1527,91 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
       }
     }, [data, innerHeight, innerWidth])
 
+  const timeLabelX = xScale(months[0] ?? new Date("2024-03-01")) - 9
+  const timeLabelY = innerHeight + 64
+
+  const legendX = isSmallScreen ? timeLabelX - 18 : innerWidth - 250
+  const legendY = isSmallScreen ? timeLabelY + 18 : innerHeight - 42
+
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="block w-full"
-      role="img"
-      aria-label="Breath curtain showing daily chlorophyll-a by latitude"
-    >
-      <g transform={`translate(${margin.left},${margin.top})`}>
-        <rect width={innerWidth} height={innerHeight} rx={18} fill="#edf7f2" />
-
-        {cells.map((cell, i) => (
+    <div ref={containerRef} className="w-full overflow-hidden">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="block w-full max-w-full"
+        role="img"
+        aria-label="Breath curtain showing daily chlorophyll-a by latitude"
+      >
+        <g transform={`translate(${margin.left},${margin.top})`}>
           <rect
-            key={i}
-            x={cell.x}
-            y={cell.y}
-            width={cell.width}
-            height={cell.height}
-            fill={cell.fill}
-            opacity={0.92}
+            width={innerWidth}
+            height={innerHeight}
+            rx={18}
+            fill="#edf7f2"
           />
-        ))}
 
-        {latTicks.map((lat) => (
+          {cells.map((cell, i) => (
+            <rect
+              key={i}
+              x={cell.x}
+              y={cell.y}
+              width={cell.width}
+              height={cell.height}
+              fill={cell.fill}
+              opacity={0.92}
+            />
+          ))}
+
+          {latTicks.map((lat) => (
+            <text
+              key={lat}
+              x={-14}
+              y={yScale(lat) + 4}
+              textAnchor="end"
+              className="fill-[#5d7c7c] text-[11px]"
+            >
+              {lat}°N
+            </text>
+          ))}
+
+          {months.map((month) => (
+            <text
+              key={month.toISOString()}
+              x={xScale(month)}
+              y={innerHeight + 34}
+              textAnchor="middle"
+              className="fill-[#5d7c7c] text-[11px]"
+            >
+              {d3.timeFormat("%b")(month)}
+            </text>
+          ))}
+
           <text
-            key={lat}
-            x={-14}
-            y={yScale(lat) + 4}
+            x={timeLabelX}
+            y={timeLabelY}
+            textAnchor="start"
+            className="fill-[#45696a] text-[10px] tracking-[0.16em] uppercase"
+          >
+            TIME IN SPRING 2024
+          </text>
+
+          <text
+            transform={`translate(${-54},${yScale(65) + 4}) rotate(-90)`}
+            dx="0.9em"
             textAnchor="end"
-            className="fill-[#5d7c7c] text-[11px]"
+            className="fill-[#45696a] text-[10px] tracking-[0.16em] uppercase"
           >
-            {lat}°N
+            LATITUDE
           </text>
-        ))}
 
-        {months.map((month) => (
-          <text
-            key={month.toISOString()}
-            x={xScale(month)}
-            y={innerHeight + 34}
-            textAnchor="middle"
-            className="fill-[#5d7c7c] text-[11px]"
-          >
-            {d3.timeFormat("%b")(month)}
-          </text>
-        ))}
-
-        <text
-          x={xScale(months[0] ?? new Date("2024-03-01"))}
-          y={innerHeight + 64}
-          dx="-0.9em"
-          textAnchor="start"
-          className="fill-[#45696a] text-[10px] tracking-[0.16em] uppercase"
-        >
-          TIME IN SPRING 2024
-        </text>
-
-        <text
-          transform={`translate(${-54},${yScale(65) + 4}) rotate(-90)`}
-          dx="0.9em"
-          textAnchor="end"
-          className="fill-[#45696a] text-[10px] tracking-[0.16em] uppercase"
-        >
-          LATITUDE
-        </text>
-
-        <ColorLegend
-          colorScale={colorScale}
-          x={innerWidth - 250}
-          y={innerHeight - 42}
-        />
-      </g>
-    </svg>
+          <ColorLegend
+            colorScale={colorScale}
+            x={legendX}
+            y={legendY}
+            transparent={isSmallScreen}
+          />
+        </g>
+      </svg>
+    </div>
   )
 }
 
@@ -1508,23 +1619,27 @@ function ColorLegend({
   colorScale,
   x,
   y,
+  transparent = false,
 }: {
   colorScale: d3.ScaleSequential<string>
   x: number
   y: number
+  transparent?: boolean
 }) {
   const steps = d3.range(0, 1.001, 0.1)
   const [minValue, maxValue] = colorScale.domain()
 
   return (
     <g transform={`translate(${x},${y})`}>
-      <rect
-        width={250}
-        height={36}
-        rx={18}
-        fill="rgba(255,255,255,0.78)"
-        stroke="rgba(18,50,56,0.12)"
-      />
+      {!transparent ? (
+        <rect
+          width={250}
+          height={36}
+          rx={18}
+          fill="rgba(255,255,255,0.28)"
+          stroke="rgba(18,50,56,0.04)"
+        />
+      ) : null}
 
       {steps.map((t, i) => {
         const value = minValue + t * (maxValue - minValue)
@@ -1548,50 +1663,9 @@ function ColorLegend({
   )
 }
 
-function BreathCurtainAtmosphere() {
-  const cells = [
-    {
-      src: spikyRadialCellImg,
-      className:
-        "left-[3%] top-[8%] w-24 rotate-[-12deg] opacity-[0.13] blur-[0.2px]",
-    },
-    {
-      src: ovalDiatomImg,
-      className:
-        "right-[5%] top-[12%] w-28 rotate-[18deg] opacity-[0.12] blur-[0.2px]",
-    },
-    {
-      src: chainColonyImg,
-      className:
-        "right-[7%] bottom-[8%] w-40 rotate-[-18deg] opacity-[0.10] blur-[0.3px]",
-    },
-    {
-      src: starClusterImg,
-      className:
-        "left-[12%] bottom-[10%] w-20 rotate-[28deg] opacity-[0.10] blur-[0.2px]",
-    },
-  ]
-
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(43,182,115,0.11),transparent_32%),radial-gradient(circle_at_72%_58%,rgba(122,231,255,0.07),transparent_30%)]" />
-
-      {cells.map((cell, index) => (
-        <img
-          key={index}
-          src={cell.src}
-          alt=""
-          aria-hidden="true"
-          className={`absolute mix-blend-multiply ${cell.className}`}
-        />
-      ))}
-    </div>
-  )
-}
-
 function BloomSection({ data }: { data: HemisphereWeeklyRow[] }) {
   return (
-    <section id="bloom" className="w-full pt-20 pb-20">
+    <section id="bloom" className="w-full pt-20 pb-16">
       <div className="mx-auto w-[min(1440px,calc(100%-40px))]">
         <SectionIntro
           eyebrow="Act I · Planetary context"
@@ -1631,15 +1705,28 @@ function formatWeekRange(start: string, end: string) {
 }
 
 function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const rasterRef = useRef<HTMLCanvasElement | null>(null)
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
 
-  const width = 1600
-  const height = 760
-  const margin = { top: 70, right: 36, bottom: 92, left: 36 }
-  const mapOffsetY = 72
+  const width = useResponsiveSvgWidth(containerRef, 1600)
+
+  const height =
+    width < 640
+      ? Math.max(310, Math.round(width * 0.76))
+      : width < 1100
+        ? Math.max(450, Math.round(width * 0.41))
+        : Math.round(width * 0.475)
+  const mapOffsetY = width < 640 ? 52 : 72
+
+  const margin = {
+    top: width < 640 ? 58 : 70,
+    right: width < 640 ? 24 : 36,
+    bottom: width < 640 ? 96 : width < 1100 ? 104 : 92,
+    left: width < 640 ? 24 : 36,
+  }
 
   const innerWidth = width - margin.left - margin.right
   const innerHeight = height - margin.top - margin.bottom - mapOffsetY
@@ -1826,10 +1913,10 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
 
   return (
     <div className="w-full">
-      <div>
+      <div ref={containerRef} className="w-full overflow-hidden">
         <svg
           viewBox={`0 0 ${width} ${height}`}
-          className="block h-auto w-full"
+          className="block h-auto w-full max-w-full"
           role="img"
           aria-label="Weekly chlorophyll-a across the Northern Hemisphere"
         >
@@ -1937,9 +2024,9 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
               <rect
                 width={260}
                 height={38}
-                rx={19}
-                fill="rgba(255,255,255,0.72)"
-                stroke="rgba(18,50,56,0.12)"
+                rx={18}
+                fill="rgba(255,255,255,0.28)"
+                stroke="rgba(18,50,56,0.04)"
               />
 
               {d3.range(0, 1.001, 0.125).map((t, i) => {
@@ -1968,12 +2055,12 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
         </svg>
       </div>
 
-      <div className="mt-4 pr-[36px] pl-[32px]">
-        <div className="flex items-start gap-5 max-md:flex-col max-md:items-stretch">
+      <div className="mt-4 px-0 sm:pr-[36px] sm:pl-[32px]">
+        <div className="flex items-start gap-4 max-md:flex-col max-md:items-stretch">
           <button
             type="button"
             onClick={() => setIsPlaying((current) => !current)}
-            className="shrink-0 rounded-full border border-[#123238]/15 bg-white/70 px-4 py-2 text-sm text-[#2f6767] backdrop-blur"
+            className="shrink-0 rounded-full border border-[#123238]/15 bg-white/70 px-3 py-1 text-sm text-[#2f6767] backdrop-blur"
           >
             {isPlaying ? "Pause bloom" : "Play bloom"}
           </button>
@@ -2022,7 +2109,7 @@ function SourceSection() {
   return (
     <section
       id="source"
-      className="mx-auto w-[min(1440px,calc(100%-40px))] pt-24 pb-20"
+      className="mx-auto w-[min(1440px,calc(100%-32px))] pt-8 pb-16 sm:w-[min(1440px,calc(100%-40px))] sm:pt-14 sm:pb-18 lg:pt-24 lg:pb-20"
     >
       <div className="border-y border-[#123238]/8 py-12">
         <SectionIntro
@@ -2077,7 +2164,7 @@ function EndingSection() {
   return (
     <section
       id="meaning"
-      className="mx-auto w-[min(1440px,calc(100%-40px))] pt-20 pb-28"
+      className="mx-auto w-[min(1440px,calc(100%-32px))] pt-20 pb-28 sm:w-[min(1440px,calc(100%-40px))]"
     >
       <SectionIntro
         eyebrow="Every Second Breath"
@@ -2107,7 +2194,7 @@ function EndingSection() {
 function Footer() {
   return (
     <footer className="mx-auto w-[min(1440px,calc(100%-40px))] border-t border-[#123238]/10 pt-10 pb-14">
-      <div className="grid gap-16 lg:grid-cols-[0.55fr_0.45fr]">
+      <div className="grid gap-10 lg:grid-cols-[0.55fr_0.45fr] lg:gap-16">
         <div>
           <p className="text-xs font-bold tracking-[0.14em] text-[#2bb673] uppercase">
             Every Second Breath
