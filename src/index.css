@@ -301,6 +301,48 @@
 }
 
 /* ------------------------------------------------------------
+   Bloom Slider
+   ------------------------------------------------------------ */
+
+.bloom-slider {
+  appearance: none;
+  height: 18px;
+  background: transparent;
+}
+
+/* Chrome, Edge, Safari */
+.bloom-slider::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: #b8c7c4;
+}
+
+.bloom-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -3.5px;
+  border-radius: 999px;
+  background: #2bb673;
+  border: 0;
+}
+
+/* Firefox */
+.bloom-slider::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: #b8c7c4;
+}
+
+.bloom-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #2bb673;
+  border: 0;
+}
+
+/* ------------------------------------------------------------
    Animations
    ------------------------------------------------------------ */
 

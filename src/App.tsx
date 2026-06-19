@@ -193,6 +193,80 @@ function useResponsiveSvgWidth(
   return width
 }
 
+type TooltipState = {
+  visible: boolean
+  x: number
+  y: number
+  title: string
+  rows: { label: string; value: string }[]
+}
+
+const emptyTooltip: TooltipState = {
+  visible: false,
+  x: 0,
+  y: 0,
+  title: "",
+  rows: [],
+}
+
+function clampTooltipPosition(
+  clientX: number,
+  clientY: number,
+  tooltipWidth = 240,
+  tooltipHeight = 120
+) {
+  const padding = 12
+  const offset = 16
+
+  let x = clientX + offset
+  let y = clientY + offset
+
+  if (x + tooltipWidth + padding > window.innerWidth) {
+    x = clientX - tooltipWidth - offset
+  }
+
+  if (y + tooltipHeight + padding > window.innerHeight) {
+    y = clientY - tooltipHeight - offset
+  }
+
+  return {
+    x: Math.max(padding, x),
+    y: Math.max(padding, y),
+  }
+}
+
+function ChartTooltip({ tooltip }: { tooltip: TooltipState }) {
+  if (!tooltip.visible) return null
+
+  return (
+    <div
+      className="pointer-events-none fixed z-[100] max-w-[min(240px,calc(100vw-24px))] rounded-2xl border border-[#123238]/10 bg-white/90 px-4 py-3 text-left shadow-[0_18px_60px_rgba(18,50,56,0.14)] backdrop-blur-xl"
+      style={{
+        left: tooltip.x,
+        top: tooltip.y,
+      }}
+    >
+      <p className="text-[11px] font-bold tracking-[0.14em] text-[#2bb673] uppercase">
+        {tooltip.title}
+      </p>
+
+      <div className="mt-2 space-y-1.5">
+        {tooltip.rows.map((row) => (
+          <div
+            key={row.label}
+            className="flex items-baseline justify-between gap-5 text-xs leading-5"
+          >
+            <span className="text-[#5d7c7c]">{row.label}</span>
+            <span className="font-bold whitespace-nowrap text-[#123238]">
+              {row.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function FloatingPhytoIllustrations() {
   const organisms: {
     key: PhytoIllustrationKey
@@ -1117,18 +1191,24 @@ function MiniSparkline({
   variableKey: MicroVariableKey
   color: string
 }) {
+  const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip)
+
   const width = 360
   const height = 90
   const margin = { top: 10, right: 8, bottom: 18, left: 8 }
 
+  const variable =
+    MICRO_VARIABLES.find((item) => item.key === variableKey) ??
+    MICRO_VARIABLES[0]
+
+  const sparkData = data.filter((d) => Number.isFinite(d[variableKey]))
+
   const xScale = d3
     .scaleTime()
-    .domain(d3.extent(data, (d) => d.time) as [Date, Date])
+    .domain(d3.extent(sparkData, (d) => d.time) as [Date, Date])
     .range([margin.left, width - margin.right])
 
-  const values = data
-    .map((d) => d[variableKey])
-    .filter((value) => Number.isFinite(value))
+  const values = sparkData.map((d) => d[variableKey])
 
   const yScale = d3
     .scaleLinear()
@@ -1142,46 +1222,94 @@ function MiniSparkline({
     .y((d) => yScale(d[variableKey]))
     .curve(d3.curveCatmullRom.alpha(0.5))
 
+  const handleTooltipMove = (event: React.PointerEvent<SVGRectElement>) => {
+    const svg = event.currentTarget.ownerSVGElement
+    if (!svg || sparkData.length === 0) return
+
+    const bounds = svg.getBoundingClientRect()
+    const svgX = ((event.clientX - bounds.left) / bounds.width) * width
+    const hoveredDate = xScale.invert(svgX)
+
+    const nearest =
+      d3.least(sparkData, (d) => Math.abs(+d.time - +hoveredDate)) ??
+      sparkData[0]
+
+    const nextPosition = clampTooltipPosition(
+      event.clientX,
+      event.clientY,
+      230,
+      104
+    )
+
+    setTooltip({
+      visible: true,
+      x: nextPosition.x,
+      y: nextPosition.y,
+      title: d3.timeFormat("%-d %b %Y")(nearest.time),
+      rows: [
+        {
+          label: variable.shortLabel,
+          value: `${formatMetric(nearest[variableKey])} ${variable.unit}`,
+        },
+      ],
+    })
+  }
+
   return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="block w-full"
-      role="img"
-      aria-label={`Daily trend for ${variableKey}`}
-    >
-      <path
-        d={line(data) ?? ""}
-        fill="none"
-        stroke={color}
-        strokeWidth={2.4}
-        opacity={0.9}
-      />
-
-      <line
-        x1={margin.left}
-        x2={width - margin.right}
-        y1={height - margin.bottom}
-        y2={height - margin.bottom}
-        stroke="rgba(18,50,56,0.12)"
-      />
-
-      <text
-        x={margin.left}
-        y={height - 2}
-        className="fill-[#5d7c7c] text-[10px]"
+    <div className="relative">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="block w-full"
+        role="img"
+        aria-label={`Daily trend for ${variable.label}`}
       >
-        Mar
-      </text>
+        <path
+          d={line(sparkData) ?? ""}
+          fill="none"
+          stroke={color}
+          strokeWidth={2.4}
+          opacity={0.9}
+        />
 
-      <text
-        x={width - margin.right}
-        y={height - 2}
-        textAnchor="end"
-        className="fill-[#5d7c7c] text-[10px]"
-      >
-        Jun
-      </text>
-    </svg>
+        <line
+          x1={margin.left}
+          x2={width - margin.right}
+          y1={height - margin.bottom}
+          y2={height - margin.bottom}
+          stroke="rgba(18,50,56,0.12)"
+        />
+
+        <text
+          x={margin.left}
+          y={height - 2}
+          className="fill-[#5d7c7c] text-[10px]"
+        >
+          Mar
+        </text>
+
+        <text
+          x={width - margin.right}
+          y={height - 2}
+          textAnchor="end"
+          className="fill-[#5d7c7c] text-[10px]"
+        >
+          Jun
+        </text>
+
+        <rect
+          x={margin.left}
+          y={margin.top}
+          width={width - margin.left - margin.right}
+          height={height - margin.top - margin.bottom}
+          fill="transparent"
+          className="cursor-crosshair"
+          onPointerMove={handleTooltipMove}
+          onPointerLeave={() => setTooltip(emptyTooltip)}
+        />
+      </svg>
+
+      <ChartTooltip tooltip={tooltip} />
+    </div>
   )
 }
 
@@ -1200,6 +1328,8 @@ function MiniTrace({
   footer: string
   startDate: string
 }) {
+  const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip)
+
   const start = new Date(startDate)
 
   const sparkDataRaw = data
@@ -1215,16 +1345,17 @@ function MiniTrace({
     })
     .map((d) => ({
       date: d.time,
-      value: d[valueKey] as number,
+      rawValue: d[valueKey] as number,
     }))
 
   if (sparkDataRaw.length < 2) return null
 
-  const firstValue = sparkDataRaw[0].value
+  const firstValue = sparkDataRaw[0].rawValue
 
   const sparkData = sparkDataRaw.map((d) => ({
     date: d.date,
-    value: ((d.value - firstValue) / firstValue) * 100,
+    rawValue: d.rawValue,
+    value: ((d.rawValue - firstValue) / firstValue) * 100,
   }))
 
   const width = 190
@@ -1256,8 +1387,45 @@ function MiniTrace({
     .y1((d) => y(d.value))
     .curve(d3.curveBasis)
 
+  const handleTooltipMove = (event: React.PointerEvent<SVGRectElement>) => {
+    const svg = event.currentTarget.ownerSVGElement
+    if (!svg) return
+
+    const bounds = svg.getBoundingClientRect()
+    const svgX = ((event.clientX - bounds.left) / bounds.width) * width
+    const hoveredDate = x.invert(svgX)
+
+    const nearest =
+      d3.least(sparkData, (d) => Math.abs(+d.date - +hoveredDate)) ??
+      sparkData[0]
+
+    const nextPosition = clampTooltipPosition(
+      event.clientX,
+      event.clientY,
+      230,
+      112
+    )
+
+    setTooltip({
+      visible: true,
+      x: nextPosition.x,
+      y: nextPosition.y,
+      title: d3.timeFormat("%-d %b %Y")(nearest.date),
+      rows: [
+        {
+          label: "Relative change",
+          value: `${nearest.value >= 0 ? "+" : ""}${nearest.value.toFixed(1)}%`,
+        },
+        {
+          label: "Raw value",
+          value: formatMetric(nearest.rawValue),
+        },
+      ],
+    })
+  }
+
   return (
-    <div className="w-[220px] shrink-0 pt-0">
+    <div className="relative w-[220px] shrink-0 pt-0">
       <p className="text-[10px] font-bold tracking-[0.12em] whitespace-nowrap text-[#2bb673] uppercase">
         {label}
       </p>
@@ -1288,9 +1456,22 @@ function MiniTrace({
           strokeWidth={1.5}
           strokeLinecap="round"
         />
+
+        <rect
+          x={0}
+          y={0}
+          width={width}
+          height={height}
+          fill="transparent"
+          className="cursor-crosshair"
+          onPointerMove={handleTooltipMove}
+          onPointerLeave={() => setTooltip(emptyTooltip)}
+        />
       </svg>
 
       <p className="mt-1 text-[10px] leading-4 text-[#7b9695]">{footer}</p>
+
+      <ChartTooltip tooltip={tooltip} />
     </div>
   )
 }
@@ -1444,6 +1625,7 @@ function NorthAtlanticInhaleSection({ data }: { data: BreathCurtainRow[] }) {
 
 function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip)
 
   const width = useResponsiveSvgWidth(containerRef, 920)
   const isSmallScreen = width < 640
@@ -1466,72 +1648,139 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
   const innerWidth = width - margin.left - margin.right
   const innerHeight = height - margin.top - margin.bottom
 
-  const { cells, xScale, yScale, colorScale, months, latTicks } =
-    useMemo(() => {
-      const times = Array.from(new Set(data.map((d) => +d.time)))
-        .sort((a, b) => a - b)
-        .map((d) => new Date(d))
+  const {
+    cells,
+    times,
+    latitudes,
+    xScale,
+    yScale,
+    colorScale,
+    months,
+    latTicks,
+  } = useMemo(() => {
+    const times = Array.from(new Set(data.map((d) => +d.time)))
+      .sort((a, b) => a - b)
+      .map((d) => new Date(d))
 
-      const latitudes = Array.from(new Set(data.map((d) => d.latitude))).sort(
-        (a, b) => a - b
+    const latitudes = Array.from(new Set(data.map((d) => d.latitude))).sort(
+      (a, b) => a - b
+    )
+
+    const x = d3
+      .scaleTime()
+      .domain(d3.extent(times) as [Date, Date])
+      .range([0, innerWidth])
+
+    const y = d3
+      .scaleLinear()
+      .domain(d3.extent(latitudes) as [number, number])
+      .range([innerHeight, 0])
+
+    const values = data.map((d) => d.chl)
+    const colorDomain: [number, number] = [
+      d3.quantile(values, 0.02) ?? 0,
+      d3.quantile(values, 0.98) ?? 1.6,
+    ]
+    const color = d3
+      .scaleSequential<string>()
+      .domain(colorDomain)
+      .interpolator((t) =>
+        d3.interpolateRgbBasis([
+          "#edf7f2",
+          "#c9eddc",
+          "#8bd9aa",
+          "#2bb673",
+          "#087a58",
+        ])(t)
       )
 
-      const x = d3
-        .scaleTime()
-        .domain(d3.extent(times) as [Date, Date])
-        .range([0, innerWidth])
+    const timeStep = innerWidth / times.length
+    const latStep = innerHeight / latitudes.length
 
-      const y = d3
-        .scaleLinear()
-        .domain(d3.extent(latitudes) as [number, number])
-        .range([innerHeight, 0])
-
-      const values = data.map((d) => d.chl)
-      const colorDomain: [number, number] = [
-        d3.quantile(values, 0.02) ?? 0,
-        d3.quantile(values, 0.98) ?? 1.6,
-      ]
-      const color = d3
-        .scaleSequential<string>()
-        .domain(colorDomain)
-        .interpolator((t) =>
-          d3.interpolateRgbBasis([
-            "#edf7f2",
-            "#c9eddc",
-            "#8bd9aa",
-            "#2bb673",
-            "#087a58",
-          ])(t)
-        )
-
-      const timeStep = innerWidth / times.length
-      const latStep = innerHeight / latitudes.length
-
-      return {
-        cells: data.map((d) => ({
-          ...d,
-          x: x(d.time),
-          y: y(d.latitude),
-          width: timeStep + 1,
-          height: latStep + 1,
-          fill: color(d.chl),
-        })),
-        xScale: x,
-        yScale: y,
-        colorScale: color,
-        months:
-          d3.timeMonth
-            .every(1)
-            ?.range(times[0], d3.timeDay.offset(times.at(-1)!, 1)) ?? [],
-        latTicks: [35, 45, 55, 65],
-      }
-    }, [data, innerHeight, innerWidth])
+    return {
+      cells: data.map((d) => ({
+        ...d,
+        x: x(d.time),
+        y: y(d.latitude),
+        width: timeStep + 1,
+        height: latStep + 1,
+        fill: color(d.chl),
+      })),
+      times,
+      latitudes,
+      xScale: x,
+      yScale: y,
+      colorScale: color,
+      months:
+        d3.timeMonth
+          .every(1)
+          ?.range(times[0], d3.timeDay.offset(times.at(-1)!, 1)) ?? [],
+      latTicks: [35, 45, 55, 65],
+    }
+  }, [data, innerHeight, innerWidth])
 
   const timeLabelX = xScale(months[0] ?? new Date("2024-03-01")) - 9
   const timeLabelY = innerHeight + 64
 
   const legendX = isSmallScreen ? timeLabelX - 18 : innerWidth - 250
   const legendY = isSmallScreen ? timeLabelY + 18 : innerHeight - 42
+
+  const handleBreathTooltipMove = (
+    event: React.PointerEvent<SVGRectElement>
+  ) => {
+    const svg = event.currentTarget.ownerSVGElement
+    if (!svg) return
+
+    const bounds = svg.getBoundingClientRect()
+    const svgX = ((event.clientX - bounds.left) / bounds.width) * width
+    const svgY = ((event.clientY - bounds.top) / bounds.height) * height
+
+    const localX = svgX - margin.left
+    const localY = svgY - margin.top
+
+    if (
+      localX < 0 ||
+      localX > innerWidth ||
+      localY < 0 ||
+      localY > innerHeight
+    ) {
+      setTooltip(emptyTooltip)
+      return
+    }
+
+    const hoveredDate = xScale.invert(localX)
+    const hoveredLat = yScale.invert(localY)
+
+    const nearestTime =
+      d3.least(times, (time) => Math.abs(+time - +hoveredDate)) ?? times[0]
+
+    const nearestLat =
+      d3.least(latitudes, (lat) => Math.abs(lat - hoveredLat)) ?? latitudes[0]
+
+    const nearestCell = data.find(
+      (row) =>
+        +row.time === +nearestTime &&
+        Math.abs(row.latitude - nearestLat) < 0.001
+    )
+
+    if (!nearestCell) return
+
+    const nextPosition = clampTooltipPosition(event.clientX, event.clientY)
+
+    setTooltip({
+      visible: true,
+      x: nextPosition.x,
+      y: nextPosition.y,
+      title: d3.timeFormat("%-d %b %Y")(nearestCell.time),
+      rows: [
+        { label: "Latitude", value: `${nearestCell.latitude.toFixed(1)}°N` },
+        {
+          label: "Chlorophyll-a",
+          value: `${nearestCell.chl.toFixed(2)} mg m⁻³`,
+        },
+      ],
+    })
+  }
 
   return (
     <div ref={containerRef} className="w-full overflow-hidden">
@@ -1560,6 +1809,15 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
               opacity={0.92}
             />
           ))}
+
+          <rect
+            width={innerWidth}
+            height={innerHeight}
+            fill="transparent"
+            className="cursor-crosshair"
+            onPointerMove={handleBreathTooltipMove}
+            onPointerLeave={() => setTooltip(emptyTooltip)}
+          />
 
           {latTicks.map((lat) => (
             <text
@@ -1611,6 +1869,8 @@ function BreathCurtainChart({ data }: { data: BreathCurtainRow[] }) {
           />
         </g>
       </svg>
+
+      <ChartTooltip tooltip={tooltip} />
     </div>
   )
 }
@@ -1710,6 +1970,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
+  const [tooltip, setTooltip] = useState<TooltipState>(emptyTooltip)
 
   const width = useResponsiveSvgWidth(containerRef, 1600)
 
@@ -1746,6 +2007,15 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
 
   const activeSnapshot = groupedSnapshots[activeIndex]
   const activeRows = activeSnapshot?.rows ?? []
+  const activeRowByCoordinate = useMemo(() => {
+    const lookup = new Map<string, HemisphereWeeklyRow>()
+
+    activeRows.forEach((row) => {
+      lookup.set(`${row.longitude}|${row.latitude}`, row)
+    })
+
+    return lookup
+  }, [activeRows])
 
   const rasterGrid = useMemo(() => {
     const longitudes = Array.from(
@@ -1911,6 +2181,102 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
       ? activeIndex / (groupedSnapshots.length - 1)
       : 0
 
+  function formatLongitude(value: number) {
+    if (value < 0) return `${Math.abs(value).toFixed(1)}°W`
+    if (value > 0) return `${value.toFixed(1)}°E`
+    return "0°"
+  }
+
+  function formatLatitude(value: number) {
+    if (value < 0) return `${Math.abs(value).toFixed(1)}°S`
+    if (value > 0) return `${value.toFixed(1)}°N`
+    return "0°"
+  }
+
+  const handleMapTooltipMove = (event: React.PointerEvent<SVGRectElement>) => {
+    const svg = event.currentTarget.ownerSVGElement
+    if (!svg) return
+
+    const cols = rasterGrid.longitudes.length
+    const rows = rasterGrid.latitudes.length
+
+    if (cols === 0 || rows === 0) {
+      setTooltip(emptyTooltip)
+      return
+    }
+
+    const bounds = svg.getBoundingClientRect()
+
+    const svgX = ((event.clientX - bounds.left) / bounds.width) * width
+    const svgY = ((event.clientY - bounds.top) / bounds.height) * height
+
+    const localX = svgX - margin.left
+    const localY = svgY - margin.top - mapOffsetY
+
+    if (
+      localX < 0 ||
+      localX > innerWidth ||
+      localY < 0 ||
+      localY > innerHeight
+    ) {
+      setTooltip(emptyTooltip)
+      return
+    }
+
+    const lonStep = innerWidth / cols
+    const latStep = innerHeight / rows
+
+    const lonIndex = Math.max(
+      0,
+      Math.min(cols - 1, Math.floor(localX / lonStep))
+    )
+    const flippedLatIndex = Math.max(
+      0,
+      Math.min(rows - 1, Math.floor(localY / latStep))
+    )
+
+    const latIndex = rows - 1 - flippedLatIndex
+
+    const longitude = rasterGrid.longitudes[lonIndex]
+    const latitude = rasterGrid.latitudes[latIndex]
+
+    const row = activeRowByCoordinate.get(`${longitude}|${latitude}`)
+
+    if (!row || !Number.isFinite(row.chl)) {
+      setTooltip(emptyTooltip)
+      return
+    }
+
+    const nextPosition = clampTooltipPosition(
+      event.clientX,
+      event.clientY,
+      240,
+      132
+    )
+
+    setTooltip({
+      visible: true,
+      x: nextPosition.x,
+      y: nextPosition.y,
+      title: activeSnapshot
+        ? formatWeekRange(activeSnapshot.weekStart, activeSnapshot.weekEnd)
+        : "Weekly snapshot",
+      rows: [
+        {
+          label: "Latitude",
+          value: formatLatitude(row.latitude),
+        },
+        {
+          label: "Longitude",
+          value: formatLongitude(row.longitude),
+        },
+        {
+          label: "Chlorophyll-a",
+          value: `${row.chl.toFixed(2)} mg m⁻³`,
+        },
+      ],
+    })
+  }
   return (
     <div className="w-full">
       <div ref={containerRef} className="w-full overflow-hidden">
@@ -1994,6 +2360,19 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
             />
           </g>
 
+          <g transform={`translate(${margin.left},${margin.top + mapOffsetY})`}>
+            <rect
+              x={0}
+              y={0}
+              width={innerWidth}
+              height={innerHeight}
+              fill="transparent"
+              className="cursor-crosshair"
+              onPointerMove={handleMapTooltipMove}
+              onPointerLeave={() => setTooltip(emptyTooltip)}
+            />
+          </g>
+
           <g transform={`translate(${margin.left},${margin.top})`}>
             <text
               x={0}
@@ -2053,6 +2432,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
             </g>
           </g>
         </svg>
+        <ChartTooltip tooltip={tooltip} />
       </div>
 
       <div className="mt-4 px-0 sm:pr-[36px] sm:pl-[32px]">
@@ -2060,7 +2440,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
           <button
             type="button"
             onClick={() => setIsPlaying((current) => !current)}
-            className="shrink-0 rounded-full border border-[#123238]/15 bg-white/70 px-3 py-1 text-sm text-[#2f6767] backdrop-blur"
+            className="shrink-0 rounded-full border border-[#123238]/15 bg-white/70 px-3 py-1 text-sm text-[#2f6767] backdrop-blur transition-colors duration-300 hover:border-[#2bb673]/35 hover:bg-[#2bb673]/10 hover:text-[#087a58]"
           >
             {isPlaying ? "Pause bloom" : "Play bloom"}
           </button>
@@ -2078,7 +2458,7 @@ function HemisphereBloomMap({ data }: { data: HemisphereWeeklyRow[] }) {
                   setActiveIndex(Number(event.target.value))
                   setIsPlaying(false)
                 }}
-                className="w-full accent-[#2bb673]"
+                className="bloom-slider w-full accent-[#2bb673]"
                 aria-label="Choose weekly chlorophyll snapshot"
               />
 
